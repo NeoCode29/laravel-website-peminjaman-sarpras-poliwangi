@@ -13,7 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call(CreateAdminUserSeeder::class);
-        $this->call(MenusTableSeeder::class);
+        // Create basic roles and permissions
+        $this->call(RolePermissionSeeder::class);
+        
+        // Create admin user
+        $this->call(AdminUserSeeder::class);
     }
 }

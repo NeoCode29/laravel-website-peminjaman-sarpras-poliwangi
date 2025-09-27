@@ -6,14 +6,9 @@
     "license": "MIT",
     "require": {
         "php": "^7.3|^8.0",
-        "fruitcake/laravel-cors": "^2.0",
-        "guzzlehttp/guzzle": "^7.0.1",
-        "jeroennoten/laravel-adminlte": "^3.8",
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
-        "laravel/ui": "^3.4",
-        "laravelcollective/html": "^6.3",
         "nwidart/laravel-modules": "8.6.0",
         "spatie/laravel-permission": "^5.5"
     },
@@ -31,10 +26,7 @@
             "Modules\\": "Modules/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        },
-        "files":[
-            "app/Helpers/BangCholik.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
