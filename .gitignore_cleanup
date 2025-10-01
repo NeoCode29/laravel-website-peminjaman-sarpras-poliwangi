@@ -1,0 +1,61 @@
+# Test and Debug Files (to be ignored)
+debug_*.php
+test_*.php
+fix_*.php
+check_*.php
+verify_*.php
+quick_*.php
+cleanup_*.php
+reset_*.php
+update_*.php
+switch_*.php
+
+# Empty files
+bootstrap()
+status
+user_type
+needsProfileCompletion()
+isProfileCompleted()
+profile_completed_at
+profile_completed
+username
+id
+first()
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+*.swp
+*.swo
+*~
+
+# Debug directories
+debug/
+temp/
+tmp/
+test_output/
+
+# Large log files
+storage/logs/*.log
+!storage/logs/.gitkeep
+
+# Compiled views
+storage/framework/views/*.php
+
+# Session files
+storage/framework/sessions/*
+
+# Cache files
+bootstrap/cache/*.php
+!bootstrap/cache/.gitkeep
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db

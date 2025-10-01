@@ -23,7 +23,14 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
+                $user = Auth::guard($guard)->user();
+                
+                // Check if profile needs completion
+                if (method_exists($user, 'isProfileCompleted') && !$user->isProfileCompleted()) {
+                    return redirect()->route('profile.setup');
+                }
+                
+                return redirect()->route('dashboard');
             }
         }
 

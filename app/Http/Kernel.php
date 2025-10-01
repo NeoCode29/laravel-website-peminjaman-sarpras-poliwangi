@@ -63,8 +63,17 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-		//bangcholik
-		'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
+        'user.active' => \App\Http\Middleware\EnsureUserIsActive::class,
+        'profile.completed' => \App\Http\Middleware\EnsureProfileCompleted::class,
+        'session.monitor' => \App\Http\Middleware\SessionMonitor::class,
+        
+        // Permission middleware
+        'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
+        'permission' => \App\Http\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
+        
+        // Custom middleware
+        'user.not.blocked' => \App\Http\Middleware\EnsureUserNotBlocked::class,
+        'log.activity' => \App\Http\Middleware\LogUserActivity::class,
     ];
 }
