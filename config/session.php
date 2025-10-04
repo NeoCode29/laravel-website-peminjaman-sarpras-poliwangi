@@ -18,7 +18,7 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'file'),
+    'driver' => env('SESSION_DRIVER', 'database'),
 
     /*
     |--------------------------------------------------------------------------
@@ -31,9 +31,9 @@ return [
     |
     */
 
-    'lifetime' => env('SESSION_LIFETIME', 240), //dalam menit
+    'lifetime' => env('SESSION_LIFETIME', 480), //dalam menit (8 jam)
 
-    'expire_on_close' => true, // jika aplikasi di tutup sesi otomatis expired
+    'expire_on_close' => false, // session persist meski browser ditutup
 
     /*
     |--------------------------------------------------------------------------
@@ -46,7 +46,7 @@ return [
     |
     */
 
-    'encrypt' => false,
+    'encrypt' => true,
 
     /*
     |--------------------------------------------------------------------------

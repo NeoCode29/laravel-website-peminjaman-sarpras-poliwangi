@@ -3,12 +3,13 @@
 namespace App\Providers;
 
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use App\Listeners\LogSuccessfulLogin;
 
 use JeroenNoten\LaravelAdminLte\Events\BuildingMenu;
-use App\Models\Core\Menu;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -21,9 +22,9 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-		'Illuminate\Auth\Events\Login' => [
-			'App\Listeners\LogSuccessfulLogin',
-		],
+        Login::class => [
+            LogSuccessfulLogin::class,
+        ],
     ];
 
     /**
@@ -33,9 +34,6 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-       
-        Event::listen(BuildingMenu::class, function (BuildingMenu $event) {
-            BCL_menuSidebar($event);  
-        });
+        // Event listeners can be added here if needed
     }
 }
