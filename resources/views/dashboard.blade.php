@@ -1,136 +1,114 @@
-@extends('user-management.layout')
+@extends('layouts.app')
 
 @section('title', 'Dashboard')
+@section('subtitle', 'Selamat datang, ' . $user->name . '!')
 
 @section('content')
-<div class="row">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Selamat Datang, {{ Auth::user()->name }}!</h3>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h4>Informasi Akun</h4>
-                        <table class="table">
-                            <tr>
-                                <td><strong>Username:</strong></td>
-                                <td>{{ Auth::user()->username }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Email:</strong></td>
-                                <td>{{ Auth::user()->email }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Phone:</strong></td>
-                                <td>{{ Auth::user()->phone ?? 'Belum diisi' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Tipe User:</strong></td>
-                                <td>{{ Auth::user()->getUserTypeDisplayAttribute() }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Status:</strong></td>
-                                <td>
-                                    <span class="badge badge-{{ Auth::user()->status === 'active' ? 'success' : 'danger' }}">
-                                        {{ Auth::user()->getStatusDisplayAttribute() }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Role:</strong></td>
-                                <td>{{ Auth::user()->getRoleDisplayName() }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <h4>Quick Actions</h4>
-                        <div class="btn-group d-grid gap-2">
-                            @if(Auth::user()->hasPermission('user.view'))
-                                <a href="{{ route('user-management.index') }}" class="btn btn-primary">
-                                    Manajemen User
-                                </a>
-                            @endif
-                            
-                            @if(Auth::user()->hasPermission('role.view'))
-                                <a href="{{ route('role-management.index') }}" class="btn btn-info">
-                                    Manajemen Role
-                                </a>
-                            @endif
-                            
-                            @if(Auth::user()->hasPermission('permission.view'))
-                                <a href="{{ route('permission-management.index') }}" class="btn btn-warning">
-                                    Manajemen Permission
-                                </a>
-                            @endif
-                            
-                            @if(Auth::user()->hasPermission('role.view'))
-                                <a href="{{ route('role-permission-matrix.index') }}" class="btn btn-secondary">
-                                    Role Permission Matrix
-                                </a>
-                            @endif
-                            
-                            
-                            <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-outline-danger w-100">
-                                    Logout
-                                </button>
-                            </form>
+<div class="dashboard-content">
+    <!-- Welcome Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">Selamat datang, {{ $user->name }}!</h2>
+                            <p class="text-muted mb-0">
+                                Role: <span class="badge badge-{{ $role->name === 'admin' ? 'danger' : 'primary' }}">{{ $role->display_name }}</span>
+                            </p>
+                        </div>
+                        <div class="user-avatar">
+                            <i class="fas fa-user fa-2x"></i>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card quick-action-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Tambah Sarana</h5>
+                    <p class="card-text text-muted">Tambah data sarana baru</p>
+                    <a href="{{ route('sarana.create') }}" class="btn btn-primary">Tambah</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card quick-action-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-list fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Daftar Sarana</h5>
+                    <p class="card-text text-muted">Lihat semua data sarana</p>
+                    <a href="{{ route('sarana.index') }}" class="btn btn-info">Lihat</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card quick-action-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Manajemen User</h5>
+                    <p class="card-text text-muted">Kelola data pengguna</p>
+                    <a href="{{ route('user-management.index') }}" class="btn btn-success">Kelola</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card quick-action-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-bar fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">Laporan</h5>
+                    <p class="card-text text-muted">Lihat laporan sistem</p>
+                    <a href="#" class="btn btn-warning">Lihat</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stats-widget">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-2x text-primary mb-2"></i>
+                    <h3 class="mb-1">156</h3>
+                    <p class="text-muted mb-0">Total Sarana</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-widget">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-2x text-success mb-2"></i>
+                    <h3 class="mb-1">24</h3>
+                    <p class="text-muted mb-0">Peminjaman Aktif</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-widget">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-2x text-info mb-2"></i>
+                    <h3 class="mb-1">89</h3>
+                    <p class="text-muted mb-0">Total User</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-widget">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-warning mb-2"></i>
+                    <h3 class="mb-1">12</h3>
+                    <p class="text-muted mb-0">Menunggu Approval</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@if(Auth::user()->hasPermission('user.view'))
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Statistik User</h3>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ \App\Models\User::count() }}</h5>
-                                <p class="card-text">Total User</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ \App\Models\User::where('status', 'active')->count() }}</h5>
-                                <p class="card-text">User Aktif</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ \App\Models\User::where('user_type', 'mahasiswa')->count() }}</h5>
-                                <p class="card-text">Mahasiswa</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ \App\Models\User::where('user_type', 'staff')->count() }}</h5>
-                                <p class="card-text">Staff</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
 @endsection

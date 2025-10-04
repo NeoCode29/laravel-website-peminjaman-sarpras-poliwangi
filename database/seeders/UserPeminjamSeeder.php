@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserPeminjamSeeder extends Seeder
 {
@@ -23,62 +24,54 @@ class UserPeminjamSeeder extends Seeder
             return;
         }
 
-        // Create user peminjam 1 (Mahasiswa)
-        $peminjam1 = User::create([
-            'name' => 'Ahmad Rizki',
-            'username' => 'ahmad.rizki',
-            'email' => 'ahmad.rizki@student.poliwangi.ac.id',
-            'password' => Hash::make('peminjam123'),
-            'phone' => '081234567891',
-            'user_type' => 'mahasiswa',
-            'status' => 'active',
-            'role_id' => $peminjamRole->id,
-            'profile_completed' => false,
-            'profile_completed_at' => null,
-        ]);
+        $names = [
+            'Ahmad Rizki','Siti Nurhaliza','Budi Santoso','Dewi Lestari','Rizal Fadillah',
+            'Nadia Putri','Rangga Pratama','Tika Susanti','Fajar Ramadhan','Ayu Wulandari',
+            'Yoga Firmansyah','Intan Permata','Raka Mahendra','Mira Safitri','Dimas Saputra'
+        ];
 
-        // Assign user_peminjam role
-        $peminjam1->assignRole($peminjamRole);
+        $created = 0;
 
-        // Create user peminjam 2 (Staff)
-        $peminjam2 = User::create([
-            'name' => 'Siti Nurhaliza',
-            'username' => 'siti.nurhaliza',
-            'email' => 'siti.nurhaliza@poliwangi.ac.id',
-            'password' => Hash::make('peminjam123'),
-            'phone' => '081234567892',
-            'user_type' => 'staff',
-            'status' => 'active',
-            'role_id' => $peminjamRole->id,
-            'profile_completed' => false,
-            'profile_completed_at' => null,
-        ]);
+        for ($i = 0; $i < 15; $i++) {
+            $name = $names[$i] ?? ('User Peminjam '.($i+1));
+            $isMahasiswa = $i % 2 === 0; // selang-seling mahasiswa/staff
+            $username = Str::slug($name, '.');
+            // pastikan unik dengan menambah index jika perlu
+            $baseUsername = $username;
+            $suffix = 1;
+            while (User::where('username', $username)->exists()) {
+                $username = $baseUsername.$suffix;
+                $suffix++;
+            }
 
-        // Assign user_peminjam role
-        $peminjam2->assignRole($peminjamRole);
+            $emailDomain = $isMahasiswa ? 'student.poliwangi.ac.id' : 'poliwangi.ac.id';
+            $email = Str::slug(str_replace('.', ' ', $username), '.').'@'.$emailDomain;
+            
+            $user = User::updateOrCreate(
+                ['email' => $email],
+                [
+                    'name' => $name,
+                    'username' => $username,
+                    'password' => Hash::make('peminjam123'),
+                    'phone' => '0812'.str_pad((string)($i+34567890), 7, '0', STR_PAD_LEFT),
+                    'user_type' => $isMahasiswa ? 'mahasiswa' : 'staff',
+                    'status' => 'active',
+                    'role_id' => $peminjamRole->id,
+                    'profile_completed' => false,
+                    'profile_completed_at' => null,
+                ]
+            );
 
-        // Create user peminjam 3 (Mahasiswa)
-        $peminjam3 = User::create([
-            'name' => 'Budi Santoso',
-            'username' => 'budi.santoso',
-            'email' => 'budi.santoso@student.poliwangi.ac.id',
-            'password' => Hash::make('peminjam123'),
-            'phone' => '081234567893',
-            'user_type' => 'mahasiswa',
-            'status' => 'active',
-            'role_id' => $peminjamRole->id,
-            'profile_completed' => false,
-            'profile_completed_at' => null,
-        ]);
+            // Assign role jika belum
+            if (!$user->hasRole($peminjamRole)) {
+                $user->assignRole($peminjamRole);
+            }
 
-        // Assign user_peminjam role
-        $peminjam3->assignRole($peminjamRole);
+            $created++;
+        }
 
-        $this->command->info('User Peminjam created successfully!');
-        $this->command->info('Username: ahmad.rizki, Password: peminjam123');
-        $this->command->info('Username: siti.nurhaliza, Password: peminjam123');
-        $this->command->info('Username: budi.santoso, Password: peminjam123');
-        $this->command->info('All users have status: active and profile_completed: false');
+        $this->command->info("User Peminjam created/updated: {$created} accounts (password: peminjam123)");
+        $this->command->info('Semua user berstatus active dan profile_completed = false.');
     }
 }
 

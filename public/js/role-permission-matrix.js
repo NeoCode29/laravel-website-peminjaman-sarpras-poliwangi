@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Show loading state
             this.disabled = true;
+            this.style.opacity = '0.5';
             
             makeRequest(window.location.origin + '/role-permission-matrix/update-role-permissions', 'POST', {
                 role_id: roleId,
@@ -16,19 +17,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 granted: granted
             }).then(function(response) {
                 if (response.success) {
-                    showToast('success', response.message);
+                    showNotification('Permission berhasil diupdate', 'success');
                 } else {
                     // Revert checkbox state
-                    document.querySelector('.permission-checkbox[data-role-id="' + roleId + '"][data-permission-id="' + permissionId + '"]').checked = !granted;
-                    showToast('error', 'Gagal mengupdate permission');
+                    const checkbox = document.querySelector('.permission-checkbox[data-role-id="' + roleId + '"][data-permission-id="' + permissionId + '"]');
+                    checkbox.checked = !granted;
+                    showNotification('Gagal mengupdate permission: ' + (response.message || 'Unknown error'), 'error');
                 }
-            }).catch(function() {
+            }).catch(function(error) {
                 // Revert checkbox state
-                document.querySelector('.permission-checkbox[data-role-id="' + roleId + '"][data-permission-id="' + permissionId + '"]').checked = !granted;
-                showToast('error', 'Terjadi kesalahan saat mengupdate permission');
+                const checkbox = document.querySelector('.permission-checkbox[data-role-id="' + roleId + '"][data-permission-id="' + permissionId + '"]');
+                checkbox.checked = !granted;
+                showNotification('Terjadi kesalahan saat mengupdate permission', 'error');
+                console.error('Error:', error);
             }).finally(function() {
                 // Re-enable checkbox
-                document.querySelector('.permission-checkbox[data-role-id="' + roleId + '"][data-permission-id="' + permissionId + '"]').disabled = false;
+                const checkbox = document.querySelector('.permission-checkbox[data-role-id="' + roleId + '"][data-permission-id="' + permissionId + '"]');
+                checkbox.disabled = false;
+                checkbox.style.opacity = '1';
             });
         });
     });
@@ -45,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!roleId) {
-                showToast('error', 'Pilih role terlebih dahulu');
+                alert('Pilih role terlebih dahulu');
                 return;
             }
             
@@ -53,13 +59,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 role_id: roleId,
                 permissions: permissions
             }).then(function(response) {
-                showToast('success', response.message || 'Permissions berhasil diupdate');
+                alert(response.message || 'Permissions berhasil diupdate');
                 // Refresh page to update matrix
                 setTimeout(function() {
                     location.reload();
                 }, 1500);
             }).catch(function() {
-                showToast('error', 'Gagal mengupdate permissions');
+                alert('Gagal mengupdate permissions');
             });
         });
     }
@@ -136,6 +142,67 @@ function loadRolePermissions() {
             });
         })
         .catch(function() {
-            showToast('error', 'Gagal memuat permissions role');
+            alert('Gagal memuat permissions role');
         });
+}
+
+// Make HTTP request
+function makeRequest(url, method, data) {
+    const options = {
+        method: method,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+    };
+    
+    if (data && method !== 'GET') {
+        options.body = JSON.stringify(data);
+    }
+    
+    return fetch(url, options)
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('HTTP error! status: ' + response.status);
+            }
+            return response.json();
+        });
+}
+
+// Show notification
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${getNotificationIcon(type)}"></i>
+            <span>${message}</span>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(function() {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Get notification icon based on type
+function getNotificationIcon(type) {
+    const icons = {
+        'success': 'check-circle',
+        'error': 'times-circle',
+        'warning': 'exclamation-triangle',
+        'info': 'info-circle'
+    };
+    return icons[type] || 'info-circle';
 }

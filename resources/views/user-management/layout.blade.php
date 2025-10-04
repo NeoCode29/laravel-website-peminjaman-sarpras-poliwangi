@@ -102,30 +102,38 @@
             <div class="content">
                 <!-- Flash Messages -->
                 @if(session('success'))
-                    <div class="alert alert-success" id="alert-success">
-                        ✅ {{ session('success') }}
-                        <button type="button" onclick="closeAlert('alert-success')" style="background: none; border: none; float: right; font-size: 18px; cursor: pointer;">&times;</button>
+                    <div class="alert alert-success fade-in" role="alert">
+                        <i class="fas fa-check-circle alert-icon"></i>
+                        <div>
+                            <strong>Berhasil!</strong> {{ session('success') }}
+                        </div>
                     </div>
                 @endif
                 
                 @if(session('error'))
-                    <div class="alert alert-danger" id="alert-error">
-                        ❌ {{ session('error') }}
-                        <button type="button" onclick="closeAlert('alert-error')" style="background: none; border: none; float: right; font-size: 18px; cursor: pointer;">&times;</button>
+                    <div class="alert alert-danger fade-in" role="alert">
+                        <i class="fas fa-exclamation-circle alert-icon"></i>
+                        <div>
+                            <strong>Error!</strong> {{ session('error') }}
+                        </div>
                     </div>
                 @endif
                 
                 @if(session('warning'))
-                    <div class="alert alert-warning" id="alert-warning">
-                        ⚠️ {{ session('warning') }}
-                        <button type="button" onclick="closeAlert('alert-warning')" style="background: none; border: none; float: right; font-size: 18px; cursor: pointer;">&times;</button>
+                    <div class="alert alert-warning fade-in" role="alert">
+                        <i class="fas fa-exclamation-triangle alert-icon"></i>
+                        <div>
+                            <strong>Peringatan!</strong> {{ session('warning') }}
+                        </div>
                     </div>
                 @endif
                 
                 @if(session('info'))
-                    <div class="alert alert-info" id="alert-info">
-                        ℹ️ {{ session('info') }}
-                        <button type="button" onclick="closeAlert('alert-info')" style="background: none; border: none; float: right; font-size: 18px; cursor: pointer;">&times;</button>
+                    <div class="alert alert-info fade-in" role="alert">
+                        <i class="fas fa-info-circle alert-icon"></i>
+                        <div>
+                            <strong>Info!</strong> {{ session('info') }}
+                        </div>
                     </div>
                 @endif
                 
@@ -135,8 +143,6 @@
         </div>
     </div>
     
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
     
     <!-- Logout Form -->
     <form id="logout-form" action="#" method="POST" style="display: none;">
@@ -146,6 +152,27 @@
     <!-- Custom Scripts -->
     <!-- Style Guide JavaScript -->
     <script src="{{ asset('js/style-guide.js') }}"></script>
+    
+    <!-- Auto-hide alerts script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-hide alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert.fade-in');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    if (alert.parentElement) {
+                        alert.style.opacity = '0';
+                        alert.style.transform = 'translateY(-10px)';
+                        setTimeout(function() {
+                            if (alert.parentElement) {
+                                alert.remove();
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            });
+        });
+    </script>
     
     @stack('scripts')
 </body>

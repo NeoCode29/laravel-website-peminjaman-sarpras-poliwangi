@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Dashboard CSS -->
+    <link rel="stylesheet" href="{{ asset('css/style-guide.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/layout.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
     
     @stack('styles')
@@ -51,9 +53,6 @@
                 <div>
                     <strong>Berhasil!</strong> {{ session('success') }}
                 </div>
-                <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
         @endif
 
@@ -63,9 +62,6 @@
                 <div>
                     <strong>Error!</strong> {{ session('error') }}
                 </div>
-                <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
         @endif
 
@@ -75,9 +71,6 @@
                 <div>
                     <strong>Peringatan!</strong> {{ session('warning') }}
                 </div>
-                <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
         @endif
 
@@ -87,9 +80,6 @@
                 <div>
                     <strong>Info!</strong> {{ session('info') }}
                 </div>
-                <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
         @endif
 
@@ -104,6 +94,27 @@
 
     <!-- Dashboard JavaScript -->
     <script src="{{ asset('js/dashboard.js') }}"></script>
+    
+    <!-- Auto-hide alerts script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-hide alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert.fade-in');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    if (alert.parentElement) {
+                        alert.style.opacity = '0';
+                        alert.style.transform = 'translateY(-10px)';
+                        setTimeout(function() {
+                            if (alert.parentElement) {
+                                alert.remove();
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            });
+        });
+    </script>
     
     @stack('scripts')
 </body>

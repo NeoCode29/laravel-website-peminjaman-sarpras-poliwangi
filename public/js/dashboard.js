@@ -5,8 +5,9 @@
 
 class DashboardManager {
     constructor() {
-        this.sidebarToggle = null;
+        this.mobileMenuToggle = null;
         this.sidebar = null;
+        this.sidebarOverlay = null;
         this.mainContent = null;
         this.footer = null;
         this.userBtn = null;
@@ -25,19 +26,25 @@ class DashboardManager {
     }
 
     initializeElements() {
-        this.sidebarToggle = document.getElementById('sidebarToggle');
-        this.sidebar = document.getElementById('sidebar');
+        this.mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        this.sidebar = document.querySelector('.sidebar');
+        this.sidebarOverlay = document.getElementById('sidebarOverlay');
         this.mainContent = document.getElementById('mainContent');
-        this.footer = document.getElementById('footer');
+        this.footer = document.querySelector('.footer');
         this.userBtn = document.getElementById('userBtn');
         this.userDropdown = document.getElementById('userDropdown');
         this.notificationBadge = document.getElementById('notificationBadge');
     }
 
     bindEvents() {
-        // Sidebar toggle
-        if (this.sidebarToggle && this.sidebar) {
-            this.sidebarToggle.addEventListener('click', () => this.toggleSidebar());
+        // Mobile menu toggle
+        if (this.mobileMenuToggle && this.sidebar) {
+            this.mobileMenuToggle.addEventListener('click', () => this.toggleMobileSidebar());
+        }
+        
+        // Sidebar overlay click to close
+        if (this.sidebarOverlay) {
+            this.sidebarOverlay.addEventListener('click', () => this.closeMobileSidebar());
         }
 
         // User dropdown toggle
@@ -55,15 +62,17 @@ class DashboardManager {
             });
         }
 
+        // Submenu toggle
+        this.setupSubmenuToggle();
+
         // Window resize handler
         window.addEventListener('resize', () => this.handleResize());
 
         // Close sidebar when clicking outside on mobile
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 768 && this.sidebar && this.sidebar.classList.contains('show')) {
-                if (!this.sidebar.contains(e.target) && !this.sidebarToggle.contains(e.target)) {
-                    this.sidebar.classList.remove('show');
-                    this.isSidebarCollapsed = true;
+                if (!this.sidebar.contains(e.target) && !this.mobileMenuToggle.contains(e.target)) {
+                    this.closeMobileSidebar();
                 }
             }
         });
@@ -72,28 +81,22 @@ class DashboardManager {
         this.setupAlertAutoHide();
     }
 
-    toggleSidebar() {
-        this.isSidebarCollapsed = !this.isSidebarCollapsed;
-        
+    toggleMobileSidebar() {
         if (this.sidebar) {
-            // For mobile, use 'show' class, for desktop use 'collapsed'
-            if (window.innerWidth <= 768) {
-                this.sidebar.classList.toggle('show', !this.isSidebarCollapsed);
-            } else {
-                this.sidebar.classList.toggle('collapsed', this.isSidebarCollapsed);
+            this.sidebar.classList.toggle('show');
+            if (this.sidebarOverlay) {
+                this.sidebarOverlay.classList.toggle('show');
             }
         }
-        
-        if (this.mainContent) {
-            this.mainContent.classList.toggle('sidebar-collapsed', this.isSidebarCollapsed);
+    }
+    
+    closeMobileSidebar() {
+        if (this.sidebar) {
+            this.sidebar.classList.remove('show');
+            if (this.sidebarOverlay) {
+                this.sidebarOverlay.classList.remove('show');
+            }
         }
-        
-        if (this.footer) {
-            this.footer.classList.toggle('sidebar-collapsed', this.isSidebarCollapsed);
-        }
-
-        // Save state to localStorage
-        localStorage.setItem('sidebarCollapsed', this.isSidebarCollapsed);
     }
 
     toggleUserDropdown() {
@@ -102,23 +105,52 @@ class DashboardManager {
         }
     }
 
+    setupSubmenuToggle() {
+        const menuToggles = document.querySelectorAll('.menu-toggle');
+        
+        menuToggles.forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const menuItem = toggle.closest('.menu-item.has-submenu');
+                const submenu = menuItem.querySelector('.submenu');
+                
+                if (menuItem && submenu) {
+                    // Toggle active class on menu item
+                    menuItem.classList.toggle('active');
+                    
+                    // Toggle show class on submenu
+                    submenu.classList.toggle('show');
+                    
+                    // Close other submenus
+                    this.closeOtherSubmenus(menuItem);
+                }
+            });
+        });
+    }
+
+    closeOtherSubmenus(currentMenuItem) {
+        const allMenuItems = document.querySelectorAll('.menu-item.has-submenu');
+        
+        allMenuItems.forEach(item => {
+            if (item !== currentMenuItem) {
+                item.classList.remove('active');
+                const submenu = item.querySelector('.submenu');
+                if (submenu) {
+                    submenu.classList.remove('show');
+                }
+            }
+        });
+    }
+
     handleResize() {
         if (window.innerWidth <= 768) {
-            // Mobile: sidebar hidden by default, use 'show' class to display
-            this.isSidebarCollapsed = true;
-            this.sidebar?.classList.remove('collapsed', 'show');
-            this.mainContent?.classList.add('sidebar-collapsed');
-            this.footer?.classList.add('sidebar-collapsed');
+            // Mobile: close sidebar and overlay when switching to mobile
+            this.closeMobileSidebar();
         } else {
-            // Desktop: restore from localStorage
-            const savedState = localStorage.getItem('sidebarCollapsed');
-            if (savedState !== null) {
-                this.isSidebarCollapsed = savedState === 'true';
-            }
-            this.sidebar?.classList.remove('show');
-            this.sidebar?.classList.toggle('collapsed', this.isSidebarCollapsed);
-            this.mainContent?.classList.toggle('sidebar-collapsed', this.isSidebarCollapsed);
-            this.footer?.classList.toggle('sidebar-collapsed', this.isSidebarCollapsed);
+            // Desktop: close mobile sidebar when switching to desktop
+            this.closeMobileSidebar();
         }
     }
 
@@ -341,10 +373,9 @@ class DashboardManager {
         alertDiv.className = `alert alert-${type} fade-in`;
         alertDiv.innerHTML = `
             <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} alert-icon"></i>
-            <div>${message}</div>
-            <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">
-                <i class="fas fa-times"></i>
-            </button>
+            <div>
+                <strong>${type === 'success' ? 'Berhasil!' : type === 'error' ? 'Error!' : type === 'warning' ? 'Peringatan!' : 'Info!'}</strong> ${message}
+            </div>
         `;
         
         alertContainer.insertBefore(alertDiv, alertContainer.firstChild);

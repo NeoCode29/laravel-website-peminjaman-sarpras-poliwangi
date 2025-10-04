@@ -63,13 +63,13 @@ class OAuthService
         ];
 
         if ($user) {
-            // Update existing user
-            $user->update($userData);
-            
-            // Ensure user has correct role based on SSO data
-            $this->assignDefaultRole($user, $ssoUser);
-            
-            Log::info('User updated from SSO', [
+            // Update minimal fields only for existing user (do not overwrite role_id or other profile fields)
+            $user->last_sso_login = now();
+            // Optional: keep latest raw SSO payload for diagnostics without changing business fields
+            $user->sso_data = json_encode($ssoUser);
+            $user->save();
+
+            Log::info('Existing SSO user logged in - limited update applied', [
                 'user_id' => $user->id,
                 'username' => $user->username,
                 'sso_id' => $ssoId

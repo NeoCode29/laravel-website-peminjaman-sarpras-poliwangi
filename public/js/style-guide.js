@@ -91,53 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Toast Notification System
-function showToast(message, type = 'info', duration = 5000) {
-    const toastContainer = document.getElementById('toast-container') || createToastContainer();
-    
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    const icon = getToastIcon(type);
-    toast.innerHTML = `
-        <i class="${icon}"></i>
-        <span>${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    toastContainer.appendChild(toast);
-    
-    // Auto remove after duration
-    setTimeout(() => {
-        if (toast.parentElement) {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }
-    }, duration);
-}
-
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toast-container';
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-    return container;
-}
-
-function getToastIcon(type) {
-    const icons = {
-        success: 'fas fa-check-circle',
-        error: 'fas fa-times-circle',
-        warning: 'fas fa-exclamation-triangle',
-        info: 'fas fa-info-circle'
-    };
-    return icons[type] || icons.info;
-}
 
 // Loading State Management
 function setLoadingState(element, isLoading = true) {
@@ -207,6 +160,5 @@ function showFieldError(field, message) {
 
 // Export functions for global use
 window.togglePassword = togglePassword;
-window.showToast = showToast;
 window.setLoadingState = setLoadingState;
 window.validateField = validateField;

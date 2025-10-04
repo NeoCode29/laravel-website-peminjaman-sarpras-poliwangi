@@ -1,7 +1,7 @@
 {{-- Header Component --}}
 <header class="header">
     <div class="header-left">
-        <button class="sidebar-toggle" id="sidebarToggle">
+        <button class="mobile-menu-toggle d-md-none" id="mobileMenuToggle">
             <i class="fas fa-bars"></i>
         </button>
         <a href="{{ route('dashboard') }}" class="logo">

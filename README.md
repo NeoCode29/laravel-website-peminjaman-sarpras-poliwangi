@@ -1,3 +1,13 @@
+## Catatan DevOps untuk Media/Gambar
+
+Untuk memastikan gambar yang diunggah (disk `public`) dapat diakses oleh web server, jalankan perintah berikut setelah deployment atau saat setup lokal:
+
+```bash
+php artisan storage:link
+```
+
+Pastikan juga web server mengarah ke direktori `public/` pada root projek Laravel.
+
 # CoreLaravel
 
 [![Forks](https://img.shields.io/badge/forks-44-blue)](https://github.com/ncholik/laravel)

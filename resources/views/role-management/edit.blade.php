@@ -1,130 +1,272 @@
-@extends('user-management.layout')
+@extends('layouts.app')
 
 @section('title', 'Edit Role')
+@section('subtitle', 'Ubah data role')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="font-size: 24px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: var(--spacing-sm);">
-        🏷️ Edit Role: {{ $role->display_name }}
-    </h2>
-    <a href="{{ route('role-management.index') }}" class="btn btn-secondary">
-        ← Kembali
-    </a>
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h5 style="font-size: 16px; font-weight: 500; color: var(--text-primary); display: flex; align-items: center; gap: var(--spacing-sm);">
-            ✏️ Form Edit Role
-        </h5>
-    </div>
-    <div class="card-body">
-        <form action="{{ route('role-management.update', $role->id) }}" method="POST">
-            @csrf
-            @method('PUT')
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="name" class="form-label">Nama Role <span style="color: #dc3545;">*</span></label>
-                        <input type="text" class="form-control @error('name') error @enderror" 
-                               id="name" name="name" value="{{ old('name', $role->name) }}" 
-                               placeholder="contoh: admin, peminjam" required>
-                        @error('name')
-                            <div style="color: #dc3545; font-size: 12px; margin-top: 4px;">{{ $message }}</div>
-                        @enderror
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Nama role harus unik dan tidak boleh ada spasi</div>
-                    </div>
+<div class="role-management-container">
+    <!-- Single Card -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-header-content">
+                <div class="card-header-title">
+                    <h1 class="title">
+                        <i class="fas fa-edit title-icon"></i>
+                        Edit Role
+                    </h1>
+                    <p class="subtitle">Ubah data role: {{ $role->display_name }}</p>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="display_name" class="form-label">Display Name <span style="color: #dc3545;">*</span></label>
-                        <input type="text" class="form-control @error('display_name') error @enderror" 
-                               id="display_name" name="display_name" value="{{ old('display_name', $role->display_name) }}" 
-                               placeholder="contoh: Admin (Petugas Sarpras)" required>
-                        @error('display_name')
-                            <div style="color: #dc3545; font-size: 12px; margin-top: 4px;">{{ $message }}</div>
-                        @enderror
-                    </div>
+                <div class="card-header-actions">
+                    <a href="{{ route('role-management.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Kembali
+                    </a>
                 </div>
             </div>
-
-            <div class="form-group">
-                <label for="description" class="form-label">Deskripsi</label>
-                <textarea class="form-control @error('description') error @enderror" 
-                          id="description" name="description" rows="3" 
-                          placeholder="Deskripsi singkat tentang role ini">{{ old('description', $role->description) }}</textarea>
-                @error('description')
-                    <div style="color: #dc3545; font-size: 12px; margin-top: 4px;">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
-                           value="1" {{ old('is_active', $role->is_active) ? 'checked' : '' }}>
-                    <label class="form-check-label" for="is_active">
-                        Role Aktif
-                    </label>
-                </div>
-                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Role yang aktif dapat digunakan oleh user</div>
-            </div>
-
-            <!-- Permissions Section -->
-            <div style="margin-bottom: var(--spacing-lg);">
-                <h5 style="font-size: 16px; font-weight: 500; color: var(--text-primary); display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
-                    🔑 Permissions
-                </h5>
-                <p class="text-muted" style="margin-bottom: var(--spacing-md);">Pilih permissions yang akan diberikan ke role ini</p>
+        </div>
+        
+        <div class="card-main">
+            <!-- Form Section -->
+            <form method="POST" action="{{ route('role-management.update', $role->id) }}" class="role-form">
+                @csrf
+                @method('PUT')
                 
-                @if($permissions->count() > 0)
-                    @foreach($permissions as $category => $categoryPermissions)
-                        <div class="card" style="margin-bottom: var(--spacing-md);">
-                            <div class="card-header">
-                                <h6 style="font-size: 14px; font-weight: 500; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: var(--spacing-sm);">
-                                    📁 {{ ucfirst($category) }}
-                                    <span class="badge badge-info" style="margin-left: var(--spacing-sm);">{{ $categoryPermissions->count() }} permissions</span>
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name" class="form-label">
+                            Nama Role <span class="required">*</span>
+                        </label>
+                        <input type="text" 
+                               id="name" 
+                               name="name" 
+                               value="{{ old('name', $role->name) }}"
+                               class="form-input @error('name') form-input-error @enderror"
+                               placeholder="contoh: admin"
+                               required>
+                        @error('name')
+                            <div class="form-error">{{ $message }}</div>
+                        @enderror
+                        <div class="form-help">
+                            Format: huruf kecil, angka, dan underscore (contoh: admin, petugas)
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="display_name" class="form-label">
+                            Nama Tampilan <span class="required">*</span>
+                        </label>
+                        <input type="text" 
+                               id="display_name" 
+                               name="display_name" 
+                               value="{{ old('display_name', $role->display_name) }}"
+                               class="form-input @error('display_name') form-input-error @enderror"
+                               placeholder="contoh: Administrator"
+                               required>
+                        @error('display_name')
+                            <div class="form-error">{{ $message }}</div>
+                        @enderror
+                        <div class="form-help">
+                            Nama yang ditampilkan di interface
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="guard_name" class="form-label">
+                            Guard Name <span class="required">*</span>
+                        </label>
+                        <select id="guard_name" 
+                                name="guard_name" 
+                                class="form-select @error('guard_name') form-input-error @enderror"
+                                required>
+                            <option value="">Pilih Guard</option>
+                            <option value="web" {{ old('guard_name', $role->guard_name) === 'web' ? 'selected' : '' }}>Web</option>
+                            <option value="api" {{ old('guard_name', $role->guard_name) === 'api' ? 'selected' : '' }}>API</option>
+                        </select>
+                        @error('guard_name')
+                            <div class="form-error">{{ $message }}</div>
+                        @enderror
+                        <div class="form-help">
+                            Guard untuk autentikasi (biasanya 'web')
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="is_active" class="form-label">Status</label>
+                        <div class="form-check">
+                            <input type="checkbox" 
+                                   id="is_active" 
+                                   name="is_active" 
+                                   value="1"
+                                   {{ old('is_active', $role->is_active) ? 'checked' : '' }}
+                                   class="form-check-input">
+                            <label for="is_active" class="form-check-label">
+                                Aktif
+                            </label>
+                        </div>
+                        <div class="form-help">
+                            Role aktif dapat digunakan oleh user
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description" class="form-label">Deskripsi</label>
+                    <textarea id="description" 
+                              name="description" 
+                              class="form-textarea @error('description') form-input-error @enderror"
+                              placeholder="Deskripsi role..."
+                              rows="4">{{ old('description', $role->description) }}</textarea>
+                    @error('description')
+                        <div class="form-error">{{ $message }}</div>
+                    @enderror
+                    <div class="form-help">
+                        Deskripsi optional untuk menjelaskan fungsi role
+                    </div>
+                </div>
+                
+                <!-- Permissions Section -->
+                <div class="permissions-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-key"></i>
+                        Permission
+                    </h3>
+                    <p class="section-description">
+                        Pilih permission yang akan diberikan kepada role ini
+                    </p>
+                    
+                    @if($permissions->count() > 0)
+                        <div class="permissions-grid">
+                            @foreach($permissions as $category => $categoryPermissions)
+                            <div class="permission-category">
+                                <div class="category-header">
+                                    <h4 class="category-title">
+                                        <input type="checkbox" 
+                                               class="category-checkbox" 
+                                               data-category="{{ $category }}"
+                                               id="category_{{ $category }}">
+                                        <label for="category_{{ $category }}" class="category-label">
+                                            {{ ucfirst($category) }}
+                                        </label>
+                                    </h4>
+                                </div>
+                                <div class="permissions-list">
                                     @foreach($categoryPermissions as $permission)
-                                        <div class="col-md-6 col-lg-4" style="margin-bottom: var(--spacing-sm);">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" 
-                                                       id="permission_{{ $permission->id }}" 
-                                                       name="permissions[]" 
-                                                       value="{{ $permission->id }}"
-                                                       {{ in_array($permission->id, old('permissions', $role->permissions->pluck('id')->toArray())) ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="permission_{{ $permission->id }}">
-                                                    <strong>{{ $permission->display_name }}</strong>
-                                                    @if($permission->description)
-                                                        <br><small class="text-muted">{{ $permission->description }}</small>
-                                                    @endif
-                                                </label>
-                                            </div>
+                                    <div class="permission-item">
+                                        <div class="form-check">
+                                            <input type="checkbox" 
+                                                   class="form-check-input permission-checkbox" 
+                                                   name="permissions[]" 
+                                                   value="{{ $permission->id }}"
+                                                   data-category="{{ $category }}"
+                                                   id="permission_{{ $permission->id }}"
+                                                   {{ in_array($permission->id, old('permissions', $role->permissions->pluck('id')->toArray())) ? 'checked' : '' }}>
+                                            <label for="permission_{{ $permission->id }}" class="form-check-label">
+                                                <div class="permission-name">{{ $permission->display_name }}</div>
+                                                <div class="permission-code">{{ $permission->name }}</div>
+                                            </label>
                                         </div>
+                                    </div>
                                     @endforeach
                                 </div>
                             </div>
+                            @endforeach
                         </div>
-                    @endforeach
-                @else
-                    <div class="alert alert-warning">
-                        ⚠️ Tidak ada permission yang tersedia.
-                    </div>
-                @endif
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: var(--spacing-sm);">
-                <a href="{{ route('role-management.index') }}" class="btn btn-secondary">
-                    ❌ Batal
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    💾 Update Role
-                </button>
-            </div>
-        </form>
+                    @else
+                        <div class="empty-permissions">
+                            <div class="empty-state-container">
+                                <i class="fas fa-key empty-state-icon"></i>
+                                <h4 class="empty-state-title">Tidak Ada Permission</h4>
+                                <p class="empty-state-description">
+                                    Belum ada permission yang tersedia. 
+                                    <a href="{{ route('permission-management.create') }}">Buat permission</a> terlebih dahulu.
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{{ route('role-management.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Batal
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Update Role
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 @endsection
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/components/role-management.css') }}">
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Category checkbox functionality
+    const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+    const permissionCheckboxes = document.querySelectorAll('.permission-checkbox');
+    
+    // Initialize category checkboxes based on individual permissions
+    categoryCheckboxes.forEach(categoryCheckbox => {
+        const category = categoryCheckbox.getAttribute('data-category');
+        const categoryPermissions = document.querySelectorAll(`.permission-checkbox[data-category="${category}"]`);
+        const checkedPermissions = document.querySelectorAll(`.permission-checkbox[data-category="${category}"]:checked`);
+        
+        categoryCheckbox.checked = categoryPermissions.length === checkedPermissions.length;
+    });
+    
+    categoryCheckboxes.forEach(categoryCheckbox => {
+        categoryCheckbox.addEventListener('change', function() {
+            const category = this.getAttribute('data-category');
+            const categoryPermissions = document.querySelectorAll(`.permission-checkbox[data-category="${category}"]`);
+            
+            categoryPermissions.forEach(permissionCheckbox => {
+                permissionCheckbox.checked = this.checked;
+            });
+        });
+    });
+    
+    // Individual permission checkbox functionality
+    permissionCheckboxes.forEach(permissionCheckbox => {
+        permissionCheckbox.addEventListener('change', function() {
+            const category = this.getAttribute('data-category');
+            const categoryCheckbox = document.querySelector(`.category-checkbox[data-category="${category}"]`);
+            const categoryPermissions = document.querySelectorAll(`.permission-checkbox[data-category="${category}"]`);
+            const checkedPermissions = document.querySelectorAll(`.permission-checkbox[data-category="${category}"]:checked`);
+            
+            // Update category checkbox based on individual permissions
+            categoryCheckbox.checked = categoryPermissions.length === checkedPermissions.length;
+        });
+    });
+    
+    // Form validation
+    const form = document.querySelector('.role-form');
+    form.addEventListener('submit', function(e) {
+        const name = document.getElementById('name').value.trim();
+        const displayName = document.getElementById('display_name').value.trim();
+        const guardName = document.getElementById('guard_name').value;
+        
+        if (!name || !displayName || !guardName) {
+            e.preventDefault();
+            alert('Mohon lengkapi semua field yang wajib diisi.');
+            return;
+        }
+        
+        // Validate name format
+        const nameRegex = /^[a-z][a-z0-9_]*$/;
+        if (!nameRegex.test(name)) {
+            e.preventDefault();
+            alert('Format nama role tidak valid. Gunakan huruf kecil, angka, dan underscore');
+            document.getElementById('name').focus();
+            return;
+        }
+    });
+});
+</script>
+@endpush

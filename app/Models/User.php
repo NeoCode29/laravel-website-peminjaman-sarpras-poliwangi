@@ -102,27 +102,6 @@ class User extends Authenticatable
         return $this->status === 'active' && !$this->isBlocked();
     }
 
-    /**
-     * Get user type display name
-     */
-    public function getUserTypeDisplayAttribute()
-    {
-        return $this->user_type === 'mahasiswa' ? 'Mahasiswa' : 'Staff';
-    }
-
-    /**
-     * Get status display name
-     */
-    public function getStatusDisplayAttribute()
-    {
-        $statuses = [
-            'active' => 'Aktif',
-            'inactive' => 'Tidak Aktif',
-            'blocked' => 'Diblokir'
-        ];
-        
-        return $statuses[$this->status] ?? $this->status;
-    }
 
     /**
      * Scope untuk filter user berdasarkan status
@@ -344,12 +323,54 @@ class User extends Authenticatable
     }
 
     /**
+     * Get user type display attribute
+     */
+    public function getUserTypeDisplayAttribute()
+    {
+        switch ($this->user_type) {
+            case 'mahasiswa':
+                return 'Mahasiswa';
+            case 'staff':
+                return 'Staff';
+            default:
+                return 'Tidak Diketahui';
+        }
+    }
+
+    /**
+     * Get status display attribute
+     */
+    public function getStatusDisplayAttribute()
+    {
+        switch ($this->status) {
+            case 'active':
+                return 'Aktif';
+            case 'inactive':
+                return 'Tidak Aktif';
+            case 'blocked':
+                return 'Diblokir';
+            default:
+                return 'Tidak Diketahui';
+        }
+    }
+
+
+    /**
      * Get user type for compatibility
      */
     public function getUserType()
     {
         return $this->user_type;
     }
+
+    /**
+     * Get user status
+     */
+    public function getStatus()
+    {
+        return $this->status;
+    }
+
 
     /**
      * Check if user is a student (user_peminjam).

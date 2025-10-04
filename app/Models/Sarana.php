@@ -11,6 +11,8 @@ class Sarana extends Model
 {
     use HasFactory;
 
+    protected $table = 'sarana';
+
     protected $fillable = [
         'name',
         'kategori_id',
@@ -80,7 +82,7 @@ class Sarana extends Model
             return;
         }
 
-        $this->jumlah_total = $this->units()->count();
+        // jumlah_total tidak boleh diubah, hanya hitung breakdown
         $this->jumlah_tersedia = $this->units()->where('unit_status', 'tersedia')->count();
         $this->jumlah_rusak = $this->units()->where('unit_status', 'rusak')->count();
         $this->jumlah_maintenance = $this->units()->where('unit_status', 'maintenance')->count();
@@ -97,16 +99,16 @@ class Sarana extends Model
             return;
         }
 
-        // Hitung qty yang sedang dipinjam aktif
+        // Hitung qty yang sedang dipinjam aktif (termasuk pending sesuai PRD)
         $qtyDipinjamAktif = \DB::table('peminjaman_items')
             ->join('peminjaman', 'peminjaman_items.peminjaman_id', '=', 'peminjaman.id')
             ->where('peminjaman_items.sarana_id', $this->id)
-            ->whereIn('peminjaman.status', ['approved', 'picked_up'])
+            ->whereIn('peminjaman.status', ['pending', 'approved', 'picked_up'])
             ->sum('peminjaman_items.qty_approved');
 
-        $this->jumlah_tersedia = $this->jumlah_total - 
-            ($this->jumlah_rusak + $this->jumlah_maintenance + $this->jumlah_hilang) - 
-            $qtyDipinjamAktif;
+        $this->jumlah_tersedia = max(0, (int) $this->jumlah_total - 
+            ((int) $this->jumlah_rusak + (int) $this->jumlah_maintenance + (int) $this->jumlah_hilang) - 
+            (int) $qtyDipinjamAktif);
         $this->save();
     }
 
@@ -120,5 +122,18 @@ class Sarana extends Model
         } else {
             $this->calculatePooledAvailability();
         }
+    }
+
+    /**
+     * Accessor untuk sisa unit yang belum ditambahkan (serialized)
+     */
+    public function getRemainingUnitsAttribute(): int
+    {
+        if ($this->type !== 'serialized') {
+            return 0;
+        }
+        
+        $currentUnits = $this->units()->count();
+        return max(0, $this->jumlah_total - $currentUnits);
     }
 }

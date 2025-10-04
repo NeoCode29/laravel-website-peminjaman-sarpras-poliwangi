@@ -5,21 +5,25 @@ namespace App\Http\Controllers;
 use App\Models\Sarana;
 use App\Models\KategoriSarana;
 use App\Models\SaranaUnit;
+use App\Services\SaranaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\StoreSaranaRequest;
+use App\Http\Requests\UpdateSaranaRequest;
 
 class SaranaController extends Controller
 {
-    public function __construct()
+    public function __construct(private SaranaService $service)
     {
         $this->middleware('auth');
         $this->middleware('permission:sarpras.view')->only(['index', 'show']);
         $this->middleware('permission:sarpras.create')->only(['create', 'store']);
         $this->middleware('permission:sarpras.edit')->only(['edit', 'update']);
         $this->middleware('permission:sarpras.delete')->only(['destroy']);
-        $this->middleware('permission:sarpras.unit_manage')->only(['manageUnits', 'storeUnit', 'updateUnit', 'destroyUnit']);
+        $this->middleware('permission:sarpras.unit_manage')->only(['manageUnits', 'storeUnit', 'updateUnit', 'destroyUnit', 'storeBulkUnits', 'updateBulkUnitStatus']);
+        $this->middleware('permission:sarpras.status_update')->only(['updatePooledStatus']);
     }
 
     /**
@@ -27,41 +31,8 @@ class SaranaController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Sarana::with(['kategori', 'creator']);
-
-        // Filter berdasarkan kategori
-        if ($request->filled('kategori_id')) {
-            $query->where('kategori_id', $request->kategori_id);
-        }
-
-        // Filter berdasarkan tipe
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
-
-        // Filter berdasarkan status ketersediaan
-        if ($request->filled('status')) {
-            switch ($request->status) {
-                case 'tersedia':
-                    $query->where('jumlah_tersedia', '>', 0);
-                    break;
-                case 'kosong':
-                    $query->where('jumlah_tersedia', 0);
-                    break;
-            }
-        }
-
-        // Search
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('lokasi', 'like', "%{$search}%");
-            });
-        }
-
-        $sarana = $query->paginate(15);
+        $filters = $request->only(['kategori_id', 'type', 'status', 'search']);
+        $sarana = $this->service->list($filters, 15);
         $kategori = KategoriSarana::orderBy('name')->get();
 
         return view('sarana.index', compact('sarana', 'kategori'));
@@ -79,43 +50,24 @@ class SaranaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreSaranaRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:150',
-            'kategori_id' => 'required|exists:kategori_sarana,id',
-            'type' => 'required|in:serialized,pooled',
-            'jumlah_total' => 'required|integer|min:0',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'lokasi' => 'nullable|string|max:150',
-        ]);
+        try {
+            $data = $request->validated();
+            $image = $request->file('image');
+            
+            $sarana = $this->service->create($data, Auth::id(), $image);
 
-        if ($validator->fails()) {
+            // Audit log: create sarana
+            $this->logAudit('create', 'Sarana', $sarana->id, null, $sarana->toArray(), 'Membuat sarana baru');
+
+            return redirect()->route('sarana.show', $sarana->id)
+                ->with('success', 'Sarana berhasil dibuat.');
+        } catch (\InvalidArgumentException $e) {
             return redirect()->back()
-                ->withErrors($validator)
+                ->withErrors(['error' => $e->getMessage()])
                 ->withInput();
         }
-
-        $data = $request->all();
-        $data['created_by'] = Auth::id();
-
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('sarana', 'public');
-            $data['image_url'] = $imagePath;
-        }
-
-        // Set default values untuk statistik
-        $data['jumlah_tersedia'] = $data['jumlah_total'];
-        $data['jumlah_rusak'] = 0;
-        $data['jumlah_maintenance'] = 0;
-        $data['jumlah_hilang'] = 0;
-
-        $sarana = Sarana::create($data);
-
-        return redirect()->route('sarana.show', $sarana->id)
-            ->with('success', 'Sarana berhasil dibuat.');
     }
 
     /**
@@ -140,54 +92,25 @@ class SaranaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Sarana $sarana)
+    public function update(UpdateSaranaRequest $request, Sarana $sarana)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:150',
-            'kategori_id' => 'required|exists:kategori_sarana,id',
-            'type' => 'required|in:serialized,pooled',
-            'jumlah_total' => 'required|integer|min:0',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'lokasi' => 'nullable|string|max:150',
-        ]);
+        try {
+            $data = $request->validated();
+            $image = $request->file('image');
+            $oldValues = $sarana->toArray();
+            
+            $sarana = $this->service->update($sarana, $data, $image);
 
-        if ($validator->fails()) {
+            // Audit log: update sarana
+            $this->logAudit('update', 'Sarana', $sarana->id, $oldValues, $sarana->toArray(), 'Memperbarui sarana');
+
+            return redirect()->route('sarana.show', $sarana->id)
+                ->with('success', 'Sarana berhasil diperbarui.');
+        } catch (\InvalidArgumentException $e) {
             return redirect()->back()
-                ->withErrors($validator)
+                ->withErrors(['error' => $e->getMessage()])
                 ->withInput();
         }
-
-        $data = $request->all();
-
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($sarana->image_url) {
-                Storage::disk('public')->delete($sarana->image_url);
-            }
-            
-            $imagePath = $request->file('image')->store('sarana', 'public');
-            $data['image_url'] = $imagePath;
-        }
-
-        // Validasi jumlah_total untuk sarana serialized
-        if ($data['type'] === 'serialized') {
-            $existingUnits = $sarana->units()->count();
-            if ($data['jumlah_total'] < $existingUnits) {
-                return redirect()->back()
-                    ->withErrors(['jumlah_total' => 'Jumlah total tidak boleh lebih kecil dari jumlah unit yang sudah terdaftar.'])
-                    ->withInput();
-            }
-        }
-
-        $sarana->update($data);
-
-        // Update statistik
-        $sarana->updateStats();
-
-        return redirect()->route('sarana.show', $sarana->id)
-            ->with('success', 'Sarana berhasil diperbarui.');
     }
 
     /**
@@ -195,25 +118,19 @@ class SaranaController extends Controller
      */
     public function destroy(Sarana $sarana)
     {
-        // Check if sarana is being used in peminjaman
-        $isUsed = \DB::table('peminjaman_items')
-            ->where('sarana_id', $sarana->id)
-            ->exists();
+        try {
+            $oldValues = $sarana->toArray();
+            $this->service->delete($sarana);
 
-        if ($isUsed) {
+            // Audit log: delete sarana
+            $this->logAudit('delete', 'Sarana', $oldValues['id'] ?? null, $oldValues, null, 'Menghapus sarana');
+
+            return redirect()->route('sarana.index')
+                ->with('success', 'Sarana berhasil dihapus.');
+        } catch (\InvalidArgumentException $e) {
             return redirect()->back()
-                ->with('error', 'Sarana tidak dapat dihapus karena sedang digunakan dalam peminjaman.');
+                ->with('error', $e->getMessage());
         }
-
-        // Delete image
-        if ($sarana->image_url) {
-            Storage::disk('public')->delete($sarana->image_url);
-        }
-
-        $sarana->delete();
-
-        return redirect()->route('sarana.index')
-            ->with('success', 'Sarana berhasil dihapus.');
     }
 
     /**
@@ -235,11 +152,6 @@ class SaranaController extends Controller
      */
     public function storeUnit(Request $request, Sarana $sarana)
     {
-        if ($sarana->type !== 'serialized') {
-            return redirect()->back()
-                ->with('error', 'Hanya sarana bertipe serialized yang dapat dikelola unitnya.');
-        }
-
         $validator = Validator::make($request->all(), [
             'unit_code' => 'required|string|max:80',
         ]);
@@ -250,35 +162,19 @@ class SaranaController extends Controller
                 ->withInput();
         }
 
-        // Check if unit_code already exists for this sarana
-        $existingUnit = $sarana->units()
-            ->where('unit_code', $request->unit_code)
-            ->exists();
+        try {
+            $unit = $this->service->addUnit($sarana, $request->unit_code);
 
-        if ($existingUnit) {
+            // Audit log: create unit
+            $this->logAudit('create', 'SaranaUnit', $unit->id, null, $unit->toArray(), 'Menambah unit sarana');
+
             return redirect()->back()
-                ->withErrors(['unit_code' => 'Unit code sudah ada untuk sarana ini.'])
+                ->with('success', 'Unit berhasil ditambahkan.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage())
                 ->withInput();
         }
-
-        // Check if adding this unit would exceed jumlah_total
-        $currentUnits = $sarana->units()->count();
-        if ($currentUnits >= $sarana->jumlah_total) {
-            return redirect()->back()
-                ->with('error', 'Tidak dapat menambah unit karena sudah mencapai batas maksimal.');
-        }
-
-        SaranaUnit::create([
-            'sarana_id' => $sarana->id,
-            'unit_code' => $request->unit_code,
-            'unit_status' => 'tersedia',
-        ]);
-
-        // Update sarana stats
-        $sarana->updateStats();
-
-        return redirect()->back()
-            ->with('success', 'Unit berhasil ditambahkan.');
     }
 
     /**
@@ -295,10 +191,19 @@ class SaranaController extends Controller
                 ->withErrors($validator);
         }
 
-        $unit->updateStatus($request->unit_status);
+        try {
+            $old = $unit->toArray();
+            $this->service->updateUnitStatus($unit, $request->unit_status);
+            
+            // Audit log: update unit
+            $this->logAudit('update', 'SaranaUnit', $unit->id, $old, $unit->fresh()->toArray(), 'Memperbarui status unit sarana');
 
-        return redirect()->back()
-            ->with('success', 'Status unit berhasil diperbarui.');
+            return redirect()->back()
+                ->with('success', 'Status unit berhasil diperbarui.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -306,23 +211,113 @@ class SaranaController extends Controller
      */
     public function destroyUnit(SaranaUnit $unit)
     {
-        // Check if unit is being used in peminjaman
-        $isUsed = \DB::table('peminjaman_item_units')
-            ->where('unit_id', $unit->id)
-            ->exists();
+        try {
+            $old = $unit->toArray();
+            $this->service->deleteUnit($unit);
 
-        if ($isUsed) {
+            // Audit log: delete unit
+            $this->logAudit('delete', 'SaranaUnit', $old['id'] ?? null, $old, null, 'Menghapus unit sarana');
+
             return redirect()->back()
-                ->with('error', 'Unit tidak dapat dihapus karena sedang digunakan dalam peminjaman.');
+                ->with('success', 'Unit berhasil dihapus.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Bulk add units
+     */
+    public function storeBulkUnits(Request $request, Sarana $sarana)
+    {
+        $validator = Validator::make($request->all(), [
+            'unit_codes' => 'required|array|min:1',
+            'unit_codes.*' => 'required|string|max:80',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
-        $sarana = $unit->sarana;
-        $unit->delete();
+        try {
+            $units = $this->service->addBulkUnits($sarana, $request->unit_codes);
 
-        // Update sarana stats
-        $sarana->updateStats();
+            // Audit log: bulk create units
+            $this->logAudit('create', 'SaranaUnit', null, null, ['count' => count($units)], 'Menambah ' . count($units) . ' unit sarana sekaligus');
 
-        return redirect()->back()
-            ->with('success', 'Unit berhasil dihapus.');
+            return redirect()->back()
+                ->with('success', count($units) . ' unit berhasil ditambahkan.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Bulk update unit status
+     */
+    public function updateBulkUnitStatus(Request $request, Sarana $sarana)
+    {
+        $validator = Validator::make($request->all(), [
+            'unit_ids' => 'required|array|min:1',
+            'unit_ids.*' => 'required|integer|exists:sarana_units,id',
+            'status' => 'required|in:tersedia,rusak,maintenance,hilang',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator);
+        }
+
+        try {
+            $updatedCount = $this->service->updateBulkUnitStatus($sarana, $request->unit_ids, $request->status);
+
+            // Audit log: bulk update units
+            $this->logAudit('update', 'SaranaUnit', null, null, ['count' => $updatedCount, 'status' => $request->status], 'Memperbarui status ' . $updatedCount . ' unit sarana');
+
+            return redirect()->back()
+                ->with('success', $updatedCount . ' unit berhasil diperbarui statusnya.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Update pooled sarana status
+     */
+    public function updatePooledStatus(Request $request, Sarana $sarana)
+    {
+        $validator = Validator::make($request->all(), [
+            'jumlah_tersedia' => 'required|integer|min:0',
+            'jumlah_rusak' => 'required|integer|min:0',
+            'jumlah_maintenance' => 'required|integer|min:0',
+            'jumlah_hilang' => 'required|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $oldValues = $sarana->toArray();
+            $sarana = $this->service->updatePooledStatus($sarana, $request->all());
+
+            // Audit log: update pooled status
+            $this->logAudit('update', 'Sarana', $sarana->id, $oldValues, $sarana->toArray(), 'Memperbarui status pooled sarana');
+
+            return redirect()->back()
+                ->with('success', 'Status sarana pooled berhasil diperbarui.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
     }
 }

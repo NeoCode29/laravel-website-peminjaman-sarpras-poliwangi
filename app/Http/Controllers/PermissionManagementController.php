@@ -91,10 +91,34 @@ class PermissionManagementController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $permission = Permission::with('roles')->findOrFail($id);
-        return view('permission-management.show', compact('permission'));
+        $permission = Permission::findOrFail($id);
+        
+        // Get paginated roles for this permission
+        $rolesQuery = $permission->roles();
+        
+        // Search roles if search parameter is provided
+        if ($request->filled('role_search')) {
+            $searchTerm = $request->role_search;
+            $rolesQuery->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('display_name', 'like', '%' . $searchTerm . '%');
+            });
+        }
+        
+        // Filter by status if provided
+        if ($request->filled('role_status')) {
+            $rolesQuery->where('is_active', $request->role_status);
+        }
+        
+        // Order roles by name
+        $rolesQuery->orderBy('name');
+        
+        // Paginate roles - 5 per page
+        $roles = $rolesQuery->paginate(5, ['*'], 'roles_page')->appends($request->query());
+        
+        return view('permission-management.show', compact('permission', 'roles'));
     }
 
     /**
