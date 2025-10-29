@@ -30,9 +30,9 @@
                     </a>
                     @endif
                     @endcan
-                    @if(Route::has('peminjaman.marking'))
-                    <a href="{{ route('peminjaman.marking') }}" class="nav-link sublink {{ request()->routeIs('peminjaman.marking') ? 'active' : '' }}">
-                        <i class="fas fa-flag"></i>
+                    @if(Route::has('marking.index'))
+                    <a href="{{ route('marking.index') }}" class="nav-link sublink {{ request()->routeIs('marking.*') ? 'active' : '' }}">
+                        <i class="fas fa-bookmark"></i>
                         <span>Marking</span>
                     </a>
                     @endif
@@ -40,8 +40,26 @@
             </div>
             @endcan
 
-            <!-- Manajemen Sarana -->
+            <!-- Katalog Sarana & Prasarana (read-only) untuk user yang tidak punya permission manajemen) -->
             @can('sarpras.view')
+            @php
+                $canManageSarana = auth()->user()->canAny(['sarpras.create','sarpras.edit','sarpras.delete','sarpras.status_update','sarpras.unit_manage']);
+                $canManagePrasarana = auth()->user()->canAny(['sarpras.create','sarpras.edit','sarpras.delete','sarpras.status_update']);
+            @endphp
+            @unless($canManageSarana || $canManagePrasarana)
+            <a href="{{ route('sarana.index') }}" class="nav-link {{ request()->routeIs('sarana.*') ? 'active' : '' }}">
+                <i class="fas fa-box"></i>
+                <span>Katalog Sarana</span>
+            </a>
+            <a href="{{ route('prasarana.index') }}" class="nav-link {{ request()->routeIs('prasarana.*') ? 'active' : '' }}">
+                <i class="fas fa-building"></i>
+                <span>Katalog Prasarana</span>
+            </a>
+            @endunless
+            @endcan
+
+            <!-- Manajemen Sarana -->
+            @canany(['sarpras.create','sarpras.edit','sarpras.delete','sarpras.status_update','sarpras.unit_manage'])
             <div class="menu-group" data-group>
                 <button type="button" class="nav-link menu-toggle" aria-expanded="{{ request()->routeIs('sarana.*') || request()->routeIs('kategori-sarana.*') ? 'true' : 'false' }}">
                     <i class="fas fa-boxes"></i>
@@ -62,60 +80,43 @@
                     @endif
                 </div>
             </div>
-            @endcan
+            @endcanany
 
-            <!-- Master Data -->
-            @can('sarpras.view')
+            <!-- Manajemen Prasarana -->
+            @canany(['sarpras.create','sarpras.edit','sarpras.delete','sarpras.status_update'])
             <div class="menu-group" data-group>
-                <button type="button" class="nav-link menu-toggle" aria-expanded="{{ request()->routeIs('jurusan.*') || request()->routeIs('prodi.*') || request()->routeIs('units.*') || request()->routeIs('positions.*') || request()->routeIs('ukm.*') ? 'true' : 'false' }}">
-                    <i class="fas fa-database"></i>
-                    <span>Master Data</span>
+                <button type="button" class="nav-link menu-toggle" aria-expanded="{{ request()->routeIs('prasarana.*') || request()->routeIs('kategori-prasarana.*') ? 'true' : 'false' }}">
+                    <i class="fas fa-building"></i>
+                    <span>Manajemen Prasarana</span>
                     <i class="fas fa-chevron-down submenu-icon" aria-hidden="true"></i>
                 </button>
-                <div class="nav-sublist {{ request()->routeIs('jurusan.*') || request()->routeIs('prodi.*') || request()->routeIs('units.*') || request()->routeIs('positions.*') || request()->routeIs('ukm.*') ? 'show' : '' }}" role="group">
-                    @if(Route::has('jurusan.index'))
-                    <a href="{{ route('jurusan.index') }}" class="nav-link sublink {{ request()->routeIs('jurusan.*') ? 'active' : '' }}">
-                        <i class="fas fa-school"></i>
-                        <span>Jurusan</span>
+                <div class="nav-sublist {{ request()->routeIs('prasarana.*') || request()->routeIs('kategori-prasarana.*') ? 'show' : '' }}" role="group">
+                    <a href="{{ route('prasarana.index') }}" class="nav-link sublink {{ request()->routeIs('prasarana.*') ? 'active' : '' }}">
+                        <i class="fas fa-list"></i>
+                        <span>Daftar Prasarana</span>
                     </a>
-                    @endif
-                    @if(Route::has('prodi.index'))
-                    <a href="{{ route('prodi.index') }}" class="nav-link sublink {{ request()->routeIs('prodi.*') ? 'active' : '' }}">
-                        <i class="fas fa-graduation-cap"></i>
-                        <span>Program Studi</span>
-                    </a>
-                    @endif
-                    @if(Route::has('units.index'))
-                    <a href="{{ route('units.index') }}" class="nav-link sublink {{ request()->routeIs('units.*') ? 'active' : '' }}">
-                        <i class="fas fa-sitemap"></i>
-                        <span>Unit</span>
-                    </a>
-                    @endif
-                    @if(Route::has('positions.index'))
-                    <a href="{{ route('positions.index') }}" class="nav-link sublink {{ request()->routeIs('positions.*') ? 'active' : '' }}">
-                        <i class="fas fa-briefcase"></i>
-                        <span>Posisi</span>
-                    </a>
-                    @endif
-                    @if(Route::has('ukm.index'))
-                    <a href="{{ route('ukm.index') }}" class="nav-link sublink {{ request()->routeIs('ukm.*') ? 'active' : '' }}">
-                        <i class="fas fa-people-group"></i>
-                        <span>UKM</span>
+                    
+                    @if(Route::has('kategori-prasarana.index'))
+                    <a href="{{ route('kategori-prasarana.index') }}" class="nav-link sublink {{ request()->routeIs('kategori-prasarana.*') ? 'active' : '' }}">
+                        <i class="fas fa-tags"></i>
+                        <span>Kategori Prasarana</span>
                     </a>
                     @endif
                 </div>
             </div>
-            @endcan
+            @endcanany
+
+            <!-- Master Data (Admin saja) -->
 
             <!-- Manajemen User -->
             @can('user.view')
             <div class="menu-group" data-group>
-                <button type="button" class="nav-link menu-toggle" aria-expanded="{{ request()->routeIs('user-management.*') || request()->routeIs('role-management.*') || request()->routeIs('permission-management.*') || request()->routeIs('role-permission-matrix.*') ? 'true' : 'false' }}">
+                <button type="button" class="nav-link menu-toggle" aria-expanded="{{ request()->routeIs('user-management.*') || request()->routeIs('role-management.*') || request()->routeIs('permission-management.*') ? 'true' : 'false' }}">
                     <i class="fas fa-users"></i>
                     <span>Manajemen User</span>
                     <i class="fas fa-chevron-down submenu-icon" aria-hidden="true"></i>
                 </button>
-                <div class="nav-sublist {{ request()->routeIs('user-management.*') || request()->routeIs('role-management.*') || request()->routeIs('permission-management.*') || request()->routeIs('role-permission-matrix.*') ? 'show' : '' }}" role="group">
+                <div class="nav-sublist {{ request()->routeIs('user-management.*') || request()->routeIs('role-management.*') || request()->routeIs('permission-management.*') ? 'show' : '' }}" role="group">
                     <a href="{{ route('user-management.index') }}" class="nav-link sublink {{ request()->routeIs('user-management.*') ? 'active' : '' }}">
                         <i class="fas fa-user"></i>
                         <span>Daftar User</span>
@@ -128,12 +129,6 @@
                         <i class="fas fa-key"></i>
                         <span>Daftar Permission</span>
                     </a>
-                    @if(Route::has('role-permission-matrix.index'))
-                    <a href="{{ route('role-permission-matrix.index') }}" class="nav-link sublink {{ request()->routeIs('role-permission-matrix.*') ? 'active' : '' }}">
-                        <i class="fas fa-table"></i>
-                        <span>Permission Matrix</span>
-                    </a>
-                    @endif
                 </div>
             </div>
             @endcan
@@ -157,12 +152,6 @@
                         <span>Sarana Prasarana</span>
                     </a>
                     @endif
-                    @can('log.view')
-                    <a href="{{ route('audit-logs.index') }}" class="nav-link sublink {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
-                        <i class="fas fa-clipboard-check"></i>
-                        <span>Audit Log</span>
-                    </a>
-                    @endcan
                 </div>
             </div>
             @endcan
@@ -170,16 +159,22 @@
             <!-- Setting -->
             @can('system.settings')
             <div class="menu-group" data-group>
-                <button type="button" class="nav-link menu-toggle" aria-expanded="{{ request()->routeIs('system.*') || request()->routeIs('notifications.*') ? 'true' : 'false' }}">
+                <button type="button" class="nav-link menu-toggle" aria-expanded="{{ request()->routeIs('system.*') || request()->routeIs('system-settings.*') || request()->routeIs('notifications.*') ? 'true' : 'false' }}">
                     <i class="fas fa-cog"></i>
                     <span>Setting</span>
                     <i class="fas fa-chevron-down submenu-icon" aria-hidden="true"></i>
                 </button>
-                <div class="nav-sublist {{ request()->routeIs('system.*') || request()->routeIs('notifications.*') ? 'show' : '' }}" role="group">
-                    <a href="{{ route('system.settings') }}" class="nav-link sublink {{ request()->routeIs('system.settings') ? 'active' : '' }}">
-                        <i class="fas fa-sliders"></i>
-                        <span>Sistem</span>
+                <div class="nav-sublist {{ request()->routeIs('system.*') || request()->routeIs('system-settings.*') || request()->routeIs('notifications.*') || request()->routeIs('approval-assignment.global.*') ? 'show' : '' }}" role="group">
+                    <a href="{{ route('system-settings.index') }}" class="nav-link sublink {{ request()->routeIs('system-settings.*') ? 'active' : '' }}">
+                        <i class="fas fa-cog"></i>
+                        <span>Pengaturan Sistem</span>
                     </a>
+                    @if(auth()->user()->can('sarpras.approval_assign') && Route::has('approval-assignment.global.index'))
+                    <a href="{{ route('approval-assignment.global.index') }}" class="nav-link sublink {{ request()->routeIs('approval-assignment.global.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-check"></i>
+                        <span>Assign Global Approver</span>
+                    </a>
+                    @endif
                     @if(Route::has('notifications.index'))
                     <a href="{{ route('notifications.index') }}" class="nav-link sublink {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
                         <i class="fas fa-bell"></i>

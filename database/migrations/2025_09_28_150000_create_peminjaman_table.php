@@ -17,6 +17,7 @@ class CreatePeminjamanTable extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('prasarana_id')->nullable();
+            $table->string('lokasi_custom', 150)->nullable()->comment('Lokasi custom jika tidak memilih prasarana');
             $table->string('event_name')->nullable();
             $table->date('start_date');
             $table->date('end_date');
@@ -49,6 +50,7 @@ class CreatePeminjamanTable extends Migration
             // Indexes
             $table->index(['user_id']);
             $table->index(['prasarana_id']);
+            $table->index(['lokasi_custom']);
             $table->index(['status']);
             $table->index(['start_date', 'end_date']);
             $table->index(['approved_by']);

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\SaranaApiController;
+use App\Http\Controllers\Api\ApprovalApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,4 +47,33 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // Pooled status update API
     Route::put('/sarana/{sarana}/pooled-status', [SaranaApiController::class, 'updatePooledStatus']);
+    
+    // Approval API endpoints
+    Route::prefix('approvals')->group(function () {
+        Route::get('/pending', [ApprovalApiController::class, 'getPending']);
+        Route::get('/status/{peminjaman}', [ApprovalApiController::class, 'getStatus']);
+        Route::post('/workflow/{workflow}/approve', [ApprovalApiController::class, 'approveWorkflow']);
+        Route::post('/workflow/{workflow}/reject', [ApprovalApiController::class, 'rejectWorkflow']);
+        Route::post('/workflow/{workflow}/override', [ApprovalApiController::class, 'overrideWorkflow']);
+        
+        // Global approval
+        Route::post('/global/{peminjaman}/approve', [ApprovalApiController::class, 'approveGlobal']);
+        Route::post('/global/{peminjaman}/reject', [ApprovalApiController::class, 'rejectGlobal']);
+        
+        // Specific sarana approval
+        Route::post('/sarana/{peminjaman}/{sarana}/approve', [ApprovalApiController::class, 'approveSpecificSarana']);
+        Route::post('/sarana/{peminjaman}/{sarana}/reject', [ApprovalApiController::class, 'rejectSpecificSarana']);
+        
+        // Specific prasarana approval
+        Route::post('/prasarana/{peminjaman}/{prasarana}/approve', [ApprovalApiController::class, 'approveSpecificPrasarana']);
+        Route::post('/prasarana/{peminjaman}/{prasarana}/reject', [ApprovalApiController::class, 'rejectSpecificPrasarana']);
+        
+        // Override approval
+        Route::post('/override/{peminjaman}', [ApprovalApiController::class, 'overrideApproval']);
+        
+        // Utility endpoints
+        Route::get('/multiple-approvers', [ApprovalApiController::class, 'getMultipleApprovers']);
+        Route::get('/check-override-permission', [ApprovalApiController::class, 'checkOverridePermission']);
+        Route::post('/calculate-final-status/{peminjaman}', [ApprovalApiController::class, 'calculateFinalStatus']);
+    });
 });

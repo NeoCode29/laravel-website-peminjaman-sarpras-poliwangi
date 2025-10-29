@@ -33,9 +33,18 @@ class KategoriSaranaController extends Controller
             });
         }
 
-        $kategori = $query->orderBy('name')->paginate(15);
+        // Filter by status
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($request->status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
 
-        return view('kategori-sarana.index', compact('kategori'));
+        $kategoriSarana = $query->orderBy('name')->paginate(15);
+
+        return view('kategori-sarana.index', compact('kategoriSarana'));
     }
 
     /**
@@ -53,8 +62,8 @@ class KategoriSaranaController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100|unique:kategori_sarana,name',
-            'description' => 'nullable|string',
-            'icon' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:500',
+            'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -63,7 +72,10 @@ class KategoriSaranaController extends Controller
                 ->withInput();
         }
 
-        KategoriSarana::create($request->all());
+        $data = $request->all();
+        $data['is_active'] = $request->has('is_active');
+
+        KategoriSarana::create($data);
 
         return redirect()->route('kategori-sarana.index')
             ->with('success', 'Kategori sarana berhasil dibuat.');
@@ -74,11 +86,12 @@ class KategoriSaranaController extends Controller
      */
     public function show(KategoriSarana $kategoriSarana)
     {
-        $kategoriSarana->load(['sarana' => function($query) {
-            $query->with(['creator'])->orderBy('name');
-        }]);
+        $sarana = $kategoriSarana->sarana()
+            ->with(['creator', 'kategori'])
+            ->orderBy('name')
+            ->paginate(15);
 
-        return view('kategori-sarana.show', compact('kategoriSarana'));
+        return view('kategori-sarana.show', compact('kategoriSarana', 'sarana'));
     }
 
     /**
@@ -96,8 +109,8 @@ class KategoriSaranaController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100|unique:kategori_sarana,name,' . $kategoriSarana->id,
-            'description' => 'nullable|string',
-            'icon' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:500',
+            'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -106,7 +119,10 @@ class KategoriSaranaController extends Controller
                 ->withInput();
         }
 
-        $kategoriSarana->update($request->all());
+        $data = $request->all();
+        $data['is_active'] = $request->has('is_active');
+
+        $kategoriSarana->update($data);
 
         return redirect()->route('kategori-sarana.show', $kategoriSarana->id)
             ->with('success', 'Kategori sarana berhasil diperbarui.');

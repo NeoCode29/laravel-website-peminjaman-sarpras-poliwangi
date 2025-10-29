@@ -74,20 +74,33 @@ class PrasaranaService
             if ($file instanceof UploadedFile) {
                 $path = $file->store('prasarana', 'public');
                 $prasarana->images()->create([
-                    'image_url' => Storage::disk('public')->url($path),
+                    'image_url' => $path,
                     'sort_order' => $currentMax + $index + 1,
                 ]);
             }
         }
     }
 
-    private function deleteImageFile(string $url): void
+    private function deleteImageFile(?string $path): void
     {
-        // url like /storage/prasarana/xxx.jpg -> map to disk path
+        if (empty($path)) {
+            return;
+        }
+
+        if (str_starts_with($path, 'http')) {
+            $parsedPath = parse_url($path, PHP_URL_PATH);
+            $path = $parsedPath ?: $path;
+        }
+
         $prefix = '/storage/';
-        if (str_starts_with($url, $prefix)) {
-            $relative = substr($url, strlen($prefix));
-            Storage::disk('public')->delete($relative);
+        if (str_starts_with($path, $prefix)) {
+            $path = substr($path, strlen($prefix));
+        }
+
+        $path = ltrim($path, '/');
+
+        if ($path !== '') {
+            Storage::disk('public')->delete($path);
         }
     }
 }

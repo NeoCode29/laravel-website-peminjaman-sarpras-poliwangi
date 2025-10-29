@@ -16,6 +16,7 @@ class KategoriPrasarana extends Model
         'name',
         'description',
         'icon',
+        'is_active',
     ];
 
     public function prasarana(): HasMany

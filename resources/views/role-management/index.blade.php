@@ -3,27 +3,18 @@
 @section('title', 'Daftar Role')
 @section('subtitle', 'Kelola role dan permission pengguna')
 
+@section('header-actions')
+<a href="{{ route('role-management.create') }}" class="btn btn-primary">
+    <i class="fas fa-plus"></i>
+    Tambah Role
+</a>
+@endsection
+
 @section('content')
 <div class="role-management-container">
     <!-- Single Card -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-header-content">
-                <div class="card-header-title">
-                    <h1 class="title">
-                        <i class="fas fa-users-cog title-icon"></i>
-                        Daftar Role
-                    </h1>
-                    <p class="subtitle">Kelola role dan permission pengguna sistem</p>
-                </div>
-                <div class="card-header-actions">
-                    <a href="{{ route('role-management.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        Tambah Role
-                    </a>
-                </div>
-            </div>
-        </div>
+    <div class="card card--headerless">
+        <div class="card-header" aria-hidden="true"></div>
         
         <div class="card-main">
             <!-- Filters Section -->
@@ -242,6 +233,11 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/components/role-management.css') }}">
+<style>
+.content-back-button {
+    display: none !important;
+}
+</style>
 @endpush
 
 @push('scripts')

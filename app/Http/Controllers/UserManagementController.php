@@ -134,6 +134,15 @@ class UserManagementController extends Controller
                 'password_changed_at' => now(),
             ]);
 
+            // Sync Spatie role pivot agar konsisten dengan role_id
+            if ($request->filled('role_id')) {
+                $roleModel = \Spatie\Permission\Models\Role::find($request->role_id);
+                if ($roleModel) {
+                    $user->syncRoles([$roleModel]);
+                    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+                }
+            }
+
             // Create specific data based on user type
             if ($request->user_type === 'mahasiswa') {
                 \App\Models\Student::create([

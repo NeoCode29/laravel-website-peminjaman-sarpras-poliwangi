@@ -15,13 +15,15 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Dashboard CSS (Vanilla) -->
-    <link rel="stylesheet" href="{{ asset('css/style-guide.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/components/header.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/components/sidebar.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/components/app-layout.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="{{ asset('css/style-guide.css') }}?v={{ filemtime(public_path('css/style-guide.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/components/header.css') }}?v={{ filemtime(public_path('css/components/header.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/components/sidebar.css') }}?v={{ filemtime(public_path('css/components/sidebar.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/components/app-layout.css') }}?v={{ filemtime(public_path('css/components/app-layout.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/components/layout.css') }}?v={{ filemtime(public_path('css/components/layout.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v={{ filemtime(public_path('css/dashboard.css')) }}">
     
+    <!-- Page-specific CSS will be injected here via @push('styles') -->
     @stack('styles')
 </head>
 <body>
@@ -46,10 +48,17 @@
 
         <!-- Content Header -->
         <div class="content-header">
-            <h1 class="content-title">@yield('title', 'Dashboard')</h1>
-            @hasSection('subtitle')
-            <p class="content-subtitle">@yield('subtitle')</p>
-            @endif
+            <div class="content-header-main">
+                <h1 class="content-title">@yield('title', 'Dashboard')</h1>
+                @hasSection('subtitle')
+                <p class="content-subtitle">@yield('subtitle')</p>
+                @endif
+            </div>
+            <div class="content-header-actions">
+                @hasSection('header-actions')
+                @yield('header-actions')
+                @endif
+            </div>
         </div>
 
         <!-- Flash Messages -->
@@ -96,10 +105,10 @@
         </main>
     </div>
 
-    <!-- Dashboard JavaScript (Vanilla) -->
+    <!-- Global JavaScript -->
     <script src="{{ asset('js/dashboard.js') }}"></script>
     
-    <!-- Auto-hide alerts script -->
+    <!-- Auto-hide alerts script (Global) -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-hide alerts after 5 seconds

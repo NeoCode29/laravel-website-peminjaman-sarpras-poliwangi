@@ -1,71 +1,8 @@
 /* Role Management Styles */
-.role-management-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0;
-}
-
-/* Card Styles */
-.card {
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 16px;
-    transition: box-shadow 0.2s ease;
-}
-
-.card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.card-header {
-    padding: 20px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.card-header-content {
+.role-form {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-}
-
-.card-header-title {
-    flex: 1;
-}
-
-.title {
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 1.2;
-    color: #333333;
-    margin: 0 0 4px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.title-icon {
-    color: #666666;
-    font-size: 20px;
-}
-
-.subtitle {
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.4;
-    color: #666666;
-    margin: 0;
-}
-
-.card-header-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-
-.card-main {
-    padding: 20px;
+    flex-direction: column;
+    gap: 24px;
 }
 
 /* Filters Section */
@@ -94,12 +31,13 @@
     font-size: 14px;
     font-weight: 500;
     line-height: 1.4;
-    color: #333333;
+    color: #1f2937;
     margin: 0;
 }
 
-.required {
-    color: #dc3545;
+.form-label.required::after {
+    content: ' *';
+    color: #ef4444;
 }
 
 /* Search Input */
@@ -1012,14 +950,13 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
-    margin-bottom: 24px;
 }
 
 .detail-item {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin-bottom: 24px;
+    margin-bottom: 0;
 }
 
 .detail-item.full-width {

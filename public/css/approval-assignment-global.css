@@ -1,0 +1,478 @@
+.approval-assignment-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.approval-assignment-page .card {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.approval-assignment-page .card--headerless > .card-header {
+    display: none;
+}
+
+.approval-assignment-page .card-main {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.approval-assignment-page .table-section {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.approval-assignment-page .table-wrapper {
+    overflow-x: auto;
+    min-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+.approval-assignment-page .data-table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 780px;
+}
+
+.approval-assignment-page .data-table thead {
+    background: #f5f7fa;
+}
+
+.approval-assignment-page .data-table th,
+.approval-assignment-page .data-table td {
+    padding: 12px;
+    text-align: left;
+    font-size: 14px;
+    color: #333333;
+    border-bottom: 1px solid #f0f0f0;
+    white-space: nowrap;
+}
+
+.approval-assignment-page .data-table th {
+    font-weight: 600;
+}
+
+.approval-assignment-page .data-table tbody tr:hover {
+    background-color: #fafafa;
+}
+
+.approval-assignment-page .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.approval-assignment-page .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666666;
+    font-size: 16px;
+}
+
+.approval-assignment-page .user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.approval-assignment-page .user-name {
+    font-weight: 500;
+    color: #333333;
+}
+
+.approval-assignment-page .user-email {
+    font-size: 12px;
+    color: #666666;
+}
+
+.approval-assignment-page .approval-level-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.approval-assignment-page .approval-level-badge.level-2 {
+    background: #fff3e0;
+    color: #b26a00;
+}
+
+.approval-assignment-page .approval-level-badge.level-3 {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.approval-assignment-page .status-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.approval-assignment-page .status-badge.status-active {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.approval-assignment-page .status-badge.status-inactive {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.approval-assignment-page .created-at {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    color: #666666;
+}
+
+.approval-assignment-page .created-date {
+    font-weight: 600;
+    color: #333333;
+}
+
+.approval-assignment-page .action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.approval-assignment-page .action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    background: #ffffff;
+    color: #333333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.approval-assignment-page .action-btn:hover {
+    background: #f5f5f5;
+    border-color: #cccccc;
+    transform: translateY(-1px);
+}
+
+.approval-assignment-page .action-btn.action-edit:hover {
+    background: #e7f1ff;
+    border-color: #cfe3ff;
+    color: #0d6efd;
+}
+
+.approval-assignment-page .action-btn.action-delete {
+    background: #fff5f5;
+    border-color: #fed7d7;
+    color: #e53e3e;
+}
+
+.approval-assignment-page .action-btn.action-delete:hover {
+    background: #fed7d7;
+    border-color: #feb2b2;
+    color: #c53030;
+    box-shadow: 0 2px 4px rgba(229, 62, 62, 0.2);
+}
+
+.approval-assignment-page .pagination-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+    border-radius: 0 0 8px 8px;
+}
+
+.approval-assignment-page .pagination-text {
+    font-size: 14px;
+    color: #666666;
+}
+
+.approval-assignment-page .pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.approval-assignment-page .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+}
+
+.approval-assignment-page .empty-icon {
+    color: #6c757d;
+    font-size: 48px;
+}
+
+.approval-assignment-page .empty-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: #333333;
+}
+
+.approval-assignment-page .empty-description {
+    font-size: 14px;
+    color: #666666;
+    max-width: 360px;
+}
+
+.approval-assignment-page .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.approval-assignment-page .modal.show {
+    display: flex;
+}
+
+.approval-assignment-page .modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.approval-assignment-page .modal-dialog {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: min(520px, calc(100% - 32px));
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    z-index: 1001;
+}
+
+.approval-assignment-page .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.approval-assignment-page .modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333333;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.approval-assignment-page .modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: #666666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.approval-assignment-page .modal-close:hover {
+    background: #f5f5f5;
+}
+
+.approval-assignment-page .modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.approval-assignment-page .modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.approval-assignment-page .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.approval-assignment-page .form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333333;
+}
+
+.approval-assignment-page .form-control,
+.approval-assignment-page select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.approval-assignment-page .form-control:focus,
+.approval-assignment-page select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+    outline: none;
+}
+
+.approval-assignment-page .checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #333333;
+}
+
+.approval-assignment-page .btn {
+    border: none;
+    border-radius: 6px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.approval-assignment-page .btn-primary {
+    background: #333333;
+    color: #ffffff;
+}
+
+.approval-assignment-page .btn-primary:hover {
+    background: #555555;
+    transform: translateY(-1px);
+}
+
+.approval-assignment-page .btn-secondary {
+    background: #f1f5f9;
+    color: #333333;
+}
+
+.approval-assignment-page .btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+.approval-assignment-page .alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.approval-assignment-page .alert-success {
+    background: #ecfdf3;
+    color: #166534;
+}
+
+.approval-assignment-page .alert-danger {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.approval-assignment-page .alert .close {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+@media (max-width: 992px) {
+    .approval-assignment-page .pagination-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .approval-assignment-page .data-table {
+        min-width: 640px;
+    }
+}
+
+@media (max-width: 768px) {
+    .approval-assignment-page .card-main {
+        padding: 16px;
+    }
+
+    .approval-assignment-page .table-section {
+        border-radius: 6px;
+    }
+
+    .approval-assignment-page .modal {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .approval-assignment-page .data-table {
+        min-width: 520px;
+    }
+
+    .approval-assignment-page .user-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .approval-assignment-page .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

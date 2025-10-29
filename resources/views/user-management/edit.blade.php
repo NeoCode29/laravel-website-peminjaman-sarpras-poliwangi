@@ -5,37 +5,19 @@
 
 @section('content')
 <!-- Form Card -->
-<div class="card">
-    <!-- Card Header -->
-    <div class="card-header">
-        <div class="card-header-content">
-            <div class="card-header-title">
-                <h2 class="card-title">
-                    <i class="fas fa-user-edit"></i>
-                    Edit User: {{ $user->name }}
-                </h2>
-                <p class="card-subtitle">Perbarui informasi pengguna di bawah ini</p>
-            </div>
-            <div class="card-header-actions">
-                <!-- Tombol kembali dihapus sesuai permintaan -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Card Main -->
-    <div class="card-main">
-        <form id="editUserForm" method="POST" action="{{ route('user-management.update', $user->id) }}" class="form-container">
+<section class="detail-page edit-user-page">
+    <div class="card user-detail-card">
+        <!-- Card Main -->
+        <div class="card-main">
+            <form id="editUserForm" method="POST" action="{{ route('user-management.update', $user->id) }}" class="user-create-form user-edit-form">
             @csrf
             @method('PUT')
             
             <!-- Basic Information Section -->
             <div class="form-section">
-                <h3 class="form-section-title">
-                    <i class="fas fa-info-circle"></i>
-                    Informasi Dasar
-                </h3>
+                <h3 class="section-title">Informasi Dasar</h3>
                 
-                <div class="form-grid">
+                <div class="detail-block form-grid">
                     <!-- Nama Lengkap -->
                     <div class="form-group">
                         <label for="name" class="form-label required">
@@ -110,12 +92,9 @@
 
             <!-- User Type and Role Section -->
             <div class="form-section">
-                <h3 class="form-section-title">
-                    <i class="fas fa-user-tag"></i>
-                    Tipe User dan Role
-                </h3>
+                <h3 class="section-title">Tipe User & Role</h3>
                 
-                <div class="form-grid">
+                <div class="detail-block form-grid">
                     <!-- Tipe User -->
                     <div class="form-group">
                         <label for="user_type" class="form-label required">
@@ -178,13 +157,10 @@
             </div>
 
             <!-- Mahasiswa Information Section -->
-            <div class="form-section" id="mahasiswa-section" style="display: {{ old('user_type', $user->user_type) == 'mahasiswa' ? 'block' : 'none' }};">
-                <h3 class="form-section-title">
-                    <i class="fas fa-graduation-cap"></i>
-                    Informasi Mahasiswa
-                </h3>
+            <div class="form-section user-type-section {{ old('user_type', $user->user_type) == 'mahasiswa' ? '' : 'is-hidden' }}" id="mahasiswa-section">
+                <h3 class="section-title">Informasi Mahasiswa</h3>
                 
-                <div class="form-grid">
+                <div class="detail-block form-grid">
                     <!-- NIM -->
                     <div class="form-group">
                         <label for="nim" class="form-label required">
@@ -249,7 +225,8 @@
                         </label>
                         <select id="prodi_id" 
                                 name="prodi_id" 
-                                class="form-select @error('prodi_id') is-invalid @enderror">
+                                class="form-select @error('prodi_id') is-invalid @enderror"
+                                data-selected="{{ old('prodi_id', $user->student->prodi_id ?? '') }}">
                             <option value="">Pilih program studi</option>
                             @if(old('prodi_id', $user->student->prodi_id ?? ''))
                                 @foreach($prodi as $p)
@@ -269,13 +246,10 @@
             </div>
 
             <!-- Staff Information Section -->
-            <div class="form-section" id="staff-section" style="display: {{ old('user_type', $user->user_type) == 'staff' ? 'block' : 'none' }};">
-                <h3 class="form-section-title">
-                    <i class="fas fa-briefcase"></i>
-                    Informasi Staff
-                </h3>
+            <div class="form-section user-type-section {{ old('user_type', $user->user_type) == 'staff' ? '' : 'is-hidden' }}" id="staff-section">
+                <h3 class="section-title">Informasi Staff</h3>
                 
-                <div class="form-grid">
+                <div class="detail-block form-grid">
                     <!-- NIP -->
                     <div class="form-group">
                         <label for="nip" class="form-label">
@@ -338,12 +312,9 @@
 
             <!-- User Information Display -->
             <div class="form-section">
-                <h3 class="form-section-title">
-                    <i class="fas fa-info"></i>
-                    Informasi Akun
-                </h3>
+                <h3 class="section-title">Informasi Akun</h3>
                 
-                <div class="form-grid">
+                <div class="detail-block form-grid">
                     <!-- Created At -->
                     <div class="form-group">
                         <label class="form-label">Tanggal Dibuat</label>
@@ -394,7 +365,7 @@
             </div>
 
             <!-- Form Actions -->
-            <div class="form-actions">
+            <div class="detail-actions">
                 <button type="button" class="btn btn-secondary" onclick="window.history.back()">
                     <i class="fas fa-times"></i>
                     Batal
@@ -408,52 +379,57 @@
     </div>
 </div>
 
+</section>
+
 @endsection
 
 @push('scripts')
 <script>
+const HIDDEN_CLASS = 'is-hidden';
+
 // Toggle user type fields
 function toggleUserTypeFields() {
     const userType = document.getElementById('user_type').value;
     const mahasiswaSection = document.getElementById('mahasiswa-section');
     const staffSection = document.getElementById('staff-section');
-    
-    // Hide all sections first
-    mahasiswaSection.style.display = 'none';
-    staffSection.style.display = 'none';
-    
-    // Show relevant section
+    const mahasiswaFields = ['nim', 'angkatan', 'jurusan_id', 'prodi_id'];
+    const staffFields = ['nip', 'unit_id', 'position_id'];
+
+    mahasiswaSection.classList.add(HIDDEN_CLASS);
+    staffSection.classList.add(HIDDEN_CLASS);
+
+    mahasiswaFields.forEach(id => {
+        const field = document.getElementById(id);
+        if (field) {
+            field.required = false;
+        }
+    });
+
+    staffFields.forEach(id => {
+        const field = document.getElementById(id);
+        if (field) {
+            field.required = false;
+        }
+    });
+
     if (userType === 'mahasiswa') {
-        mahasiswaSection.style.display = 'block';
-        // Make mahasiswa fields required
-        document.getElementById('nim').required = true;
-        document.getElementById('angkatan').required = true;
-        document.getElementById('jurusan_id').required = true;
-        document.getElementById('prodi_id').required = true;
-        // Make staff fields not required
-        document.getElementById('nip').required = false;
-        document.getElementById('unit_id').required = false;
-        document.getElementById('position_id').required = false;
+        mahasiswaSection.classList.remove(HIDDEN_CLASS);
+        mahasiswaFields.forEach(id => {
+            const field = document.getElementById(id);
+            if (field) {
+                field.required = true;
+            }
+        });
+
+        if (document.getElementById('jurusan_id').value) {
+            loadProdi();
+        }
     } else if (userType === 'staff') {
-        staffSection.style.display = 'block';
-        // Make staff fields required (except NIP which is optional)
-        document.getElementById('nip').required = false;
-        document.getElementById('unit_id').required = true;
-        document.getElementById('position_id').required = true;
-        // Make mahasiswa fields not required
-        document.getElementById('nim').required = false;
-        document.getElementById('angkatan').required = false;
-        document.getElementById('jurusan_id').required = false;
-        document.getElementById('prodi_id').required = false;
-    } else {
-        // Make all fields not required
-        document.getElementById('nim').required = false;
-        document.getElementById('angkatan').required = false;
-        document.getElementById('jurusan_id').required = false;
-        document.getElementById('prodi_id').required = false;
-        document.getElementById('nip').required = false;
-        document.getElementById('unit_id').required = false;
-        document.getElementById('position_id').required = false;
+        staffSection.classList.remove(HIDDEN_CLASS);
+        const unitField = document.getElementById('unit_id');
+        const positionField = document.getElementById('position_id');
+        if (unitField) unitField.required = true;
+        if (positionField) positionField.required = true;
     }
 }
 
@@ -461,27 +437,35 @@ function toggleUserTypeFields() {
 function loadProdi() {
     const jurusanId = document.getElementById('jurusan_id').value;
     const prodiSelect = document.getElementById('prodi_id');
-    
-    // Clear existing options
+    if (!prodiSelect) return;
+
+    const previousSelection = prodiSelect.dataset.selected || prodiSelect.value;
+    prodiSelect.dataset.selected = '';
+
     prodiSelect.innerHTML = '<option value="">Pilih program studi</option>';
-    
-    if (jurusanId) {
-        // Fetch prodi data via AJAX
-        fetch(`/api/jurusan/${jurusanId}/prodi`)
-            .then(response => response.json())
-            .then(data => {
-                data.forEach(prodi => {
-                    const option = document.createElement('option');
-                    option.value = prodi.id;
-                    option.textContent = prodi.nama_prodi;
-                    prodiSelect.appendChild(option);
-                });
-            })
-            .catch(error => {
-                console.error('Error loading prodi:', error);
-                alert('Gagal memuat data program studi');
-            });
+
+    if (!jurusanId) {
+        return;
     }
+
+    fetch(`/api/jurusan/${jurusanId}/prodi`)
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(prodi => {
+                const option = document.createElement('option');
+                option.value = prodi.id;
+                option.textContent = prodi.nama_prodi;
+                if (previousSelection && String(prodi.id) === String(previousSelection)) {
+                    option.selected = true;
+                }
+                prodiSelect.appendChild(option);
+            });
+            prodiSelect.dataset.selected = prodiSelect.value;
+        })
+        .catch(error => {
+            console.error('Error loading prodi:', error);
+            alert('Gagal memuat data program studi');
+        });
 }
 
 // Form validation
@@ -513,14 +497,8 @@ document.getElementById('editUserForm').addEventListener('submit', function(e) {
 
 // Initialize form on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Set initial state based on user type
-    const userType = '{{ $user->user_type }}';
-    if (userType) {
-        document.getElementById('user_type').value = userType;
-        toggleUserTypeFields();
-    }
-    
-    // Load prodi if jurusan is already selected
+    toggleUserTypeFields();
+
     const jurusanId = document.getElementById('jurusan_id').value;
     if (jurusanId) {
         loadProdi();
@@ -531,6 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
 @endpush
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/components/user-management-create.css') }}?v={{ filemtime(public_path('css/components/user-management-create.css')) }}">
 <style>
 /* Form Display Styles */
 .form-display {
@@ -572,48 +551,6 @@ document.addEventListener('DOMContentLoaded', function() {
     background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
-}
-
-
-/* Form Actions Styling */
-.form-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.form-actions .btn {
-    min-width: 140px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-weight: 500;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.form-actions .btn i {
-    font-size: 14px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .form-actions {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .form-actions .btn {
-        width: 100%;
-        min-width: unset;
-    }
 }
 </style>
 @endpush

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Prodi;
 use App\Models\Position;
+use App\Models\Sarana;
+use App\Models\SaranaUnit;
 
 class ApiController extends Controller
 {
@@ -39,4 +41,9 @@ class ApiController extends Controller
             return response()->json(['error' => 'Gagal memuat data posisi'], 500);
         }
     }
+
+    /**
+     * Get sarana units by sarana ID
+     */
+    // getSaranaUnits method removed - units will be auto-allocated during approval
 }

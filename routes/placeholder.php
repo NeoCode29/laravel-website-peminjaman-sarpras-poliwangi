@@ -14,28 +14,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'user.not.blocked', 'profile.completed'])->group(function () {
     
-    // Peminjaman routes (placeholder)
-    Route::prefix('peminjaman')->name('peminjaman.')->group(function () {
-        Route::get('/', function () {
-            return view('peminjaman.index');
-        })->name('index');
-        
-        Route::get('/create', function () {
-            return view('peminjaman.create');
-        })->name('create');
-        
-        Route::get('/{id}', function ($id) {
-            return view('peminjaman.show', compact('id'));
-        })->name('show');
-        
-        Route::get('/{id}/approve', function ($id) {
-            return redirect()->back()->with('info', 'Fitur approve akan segera tersedia');
-        })->name('approve');
-        
-        Route::get('/{id}/reject', function ($id) {
-            return redirect()->back()->with('info', 'Fitur reject akan segera tersedia');
-        })->name('reject');
-    });
+    // Peminjaman routes (placeholder) - disabled to use real controller routes
+    // Route::prefix('peminjaman')->name('peminjaman.')->group(function () {
+    //     Route::get('/', function () { return view('peminjaman.index'); })->name('index');
+    //     Route::get('/create', function () { return view('peminjaman.create'); })->name('create');
+    //     Route::get('/{id}', function ($id) { return view('peminjaman.show', compact('id')); })->name('show');
+    //     Route::get('/{id}/approve', function ($id) { return redirect()->back()->with('info', 'Fitur approve akan segera tersedia'); })->name('approve');
+    //     Route::get('/{id}/reject', function ($id) { return redirect()->back()->with('info', 'Fitur reject akan segera tersedia'); })->name('reject');
+    // });
     
     // Marking routes (placeholder)
     Route::prefix('marking')->name('marking.')->group(function () {
@@ -69,13 +55,6 @@ Route::middleware(['auth', 'user.not.blocked', 'profile.completed'])->group(func
         })->name('index');
     });
     
-    // Reports routes (placeholder)
-    Route::prefix('reports')->name('reports.')->group(function () {
-        Route::get('/', function () {
-            return view('reports.index');
-        })->name('index');
-    });
-    
     // System routes (placeholder)
     Route::prefix('system')->name('system.')->group(function () {
         Route::get('/settings', function () {
@@ -83,17 +62,11 @@ Route::middleware(['auth', 'user.not.blocked', 'profile.completed'])->group(func
         })->name('settings');
     });
     
-    // Notifications routes (placeholder)
-    Route::prefix('notifications')->name('notifications.')->group(function () {
-        Route::get('/', function () {
-            return view('notifications.index');
-        })->name('index');
-    });
+    // Notifications routes (placeholder) - disabled to use real controller
+    // Route::prefix('notifications')->name('notifications.')->group(function () {
+    //     Route::get('/', function () {
+    //         return view('notifications.index');
+    //     })->name('index');
+    // });
     
-    // Audit logs routes (placeholder)
-    Route::prefix('audit-logs')->name('audit-logs.')->group(function () {
-        Route::get('/', function () {
-            return view('audit-logs.index');
-        })->name('index');
-    });
 });

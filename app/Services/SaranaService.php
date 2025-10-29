@@ -79,6 +79,15 @@ class SaranaService
     public function update(Sarana $sarana, array $data, ?UploadedFile $image = null): Sarana
     {
         return DB::transaction(function () use ($sarana, $data, $image) {
+            // Handle image removal
+            if (isset($data['remove_current_image']) && $data['remove_current_image']) {
+                if ($sarana->image_url) {
+                    Storage::disk('public')->delete($sarana->image_url);
+                    $data['image_url'] = null;
+                }
+                unset($data['remove_current_image']);
+            }
+            
             // Handle image upload
             if ($image) {
                 // Delete old image
@@ -154,13 +163,13 @@ class SaranaService
         $sarana->delete();
     }
 
-    public function addUnit(Sarana $sarana, string $unitCode): SaranaUnit
+    public function addUnit(Sarana $sarana, string $unitCode, string $unitStatus = 'tersedia'): SaranaUnit
     {
         if ($sarana->type !== 'serialized') {
             throw new \InvalidArgumentException('Hanya sarana bertipe serialized yang dapat dikelola unitnya.');
         }
 
-        return DB::transaction(function () use ($sarana, $unitCode) {
+        return DB::transaction(function () use ($sarana, $unitCode, $unitStatus) {
             // Check if unit_code already exists for this sarana
             $existingUnit = $sarana->units()
                 ->where('unit_code', $unitCode)
@@ -179,7 +188,7 @@ class SaranaService
             $unit = SaranaUnit::create([
                 'sarana_id' => $sarana->id,
                 'unit_code' => $unitCode,
-                'unit_status' => 'tersedia',
+                'unit_status' => $unitStatus,
             ]);
 
             // Update sarana stats
@@ -196,33 +205,69 @@ class SaranaService
         });
     }
 
+    public function updateUnit(SaranaUnit $unit, array $data): void
+    {
+        DB::transaction(function () use ($unit, $data) {
+            // Check if unit_code is being changed and if it's unique
+            if (isset($data['unit_code']) && $data['unit_code'] !== $unit->unit_code) {
+                $existingUnit = SaranaUnit::where('sarana_id', $unit->sarana_id)
+                    ->where('unit_code', $data['unit_code'])
+                    ->where('id', '!=', $unit->id)
+                    ->first();
+                
+                if ($existingUnit) {
+                    throw new \InvalidArgumentException('Kode unit sudah digunakan untuk sarana ini.');
+                }
+            }
+
+            // Update unit data
+            $unit->update($data);
+            
+            // Update sarana stats if status changed
+            if (isset($data['unit_status'])) {
+                $unit->sarana->updateStats();
+            }
+        });
+    }
+
     public function deleteUnit(SaranaUnit $unit): void
     {
+        \Log::info('Service: Starting delete unit', ['unit_id' => $unit->id]);
+        
         // Cegah hapus jika ada peminjaman aktif terkait unit
+        \Log::info('Service: Checking if unit is used in peminjaman...');
         $isUsed = DB::table('peminjaman_item_units')
             ->join('peminjaman', 'peminjaman_item_units.peminjaman_id', '=', 'peminjaman.id')
             ->where('peminjaman_item_units.unit_id', $unit->id)
             ->whereIn('peminjaman.status', ['pending', 'approved', 'picked_up'])
             ->exists();
 
+        \Log::info('Service: Unit usage check result', ['is_used' => $isUsed]);
+
         if ($isUsed) {
+            \Log::info('Service: Unit is used, throwing exception');
             throw new \InvalidArgumentException('Unit tidak dapat dihapus karena sedang digunakan dalam peminjaman.');
         }
 
+        \Log::info('Service: Starting database transaction...');
         DB::transaction(function () use ($unit) {
+            \Log::info('Service: Inside transaction, getting sarana...');
             $sarana = $unit->sarana;
+            \Log::info('Service: Deleting unit...');
             $unit->delete();
+            \Log::info('Service: Updating sarana stats...');
             $sarana->updateStats();
+            \Log::info('Service: Transaction completed successfully');
         });
     }
 
-    public function addBulkUnits(Sarana $sarana, array $unitCodes): array
+    public function addBulkUnits(Sarana $sarana, array $unitCodes, string $unitStatus = 'tersedia'): array
     {
         if ($sarana->type !== 'serialized') {
             throw new \InvalidArgumentException('Hanya sarana bertipe serialized yang dapat dikelola unitnya.');
         }
 
-        return DB::transaction(function () use ($sarana, $unitCodes) {
+        return DB::transaction(function () use ($sarana, $unitCodes, $unitStatus) {
             $addedUnits = [];
             $currentUnits = $sarana->units()->count();
             $remainingSlots = $sarana->jumlah_total - $currentUnits;
@@ -250,7 +295,7 @@ class SaranaService
                 $unit = SaranaUnit::create([
                     'sarana_id' => $sarana->id,
                     'unit_code' => $unitCode,
-                    'unit_status' => 'tersedia',
+                    'unit_status' => $unitStatus,
                 ]);
                 $addedUnits[] = $unit;
             }
@@ -323,4 +368,15 @@ class SaranaService
             throw new \InvalidArgumentException('Jumlah total harus sama dengan penjumlahan tersedia + rusak + maintenance + hilang.');
         }
     }
+
+    /**
+     * Validate pooled breakdown consistency
+     */
+    // private function validatePooledBreakdown(array $data): void
+    // {
+    //     $breakdownSum = $data['jumlah_tersedia'] + $data['jumlah_rusak'] + $data['jumlah_maintenance'] + $data['jumlah_hilang'];
+    //     if ($breakdownSum !== (int) $data['jumlah_total']) {
+    //         throw new \InvalidArgumentException('Jumlah total harus sama dengan penjumlahan tersedia + rusak + maintenance + hilang.');
+    //     }
+    // }
 }

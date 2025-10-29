@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SaranaUnit extends Model
 {
@@ -66,10 +67,46 @@ class SaranaUnit extends Model
      */
     public function updateStatus($status)
     {
-        $this->unit_status = $status;
-        $this->save();
-        
-        // Update statistik sarana
-        $this->sarana->updateStats();
+        try {
+            $this->unit_status = $status;
+            $this->save();
+            
+            // Update statistik sarana
+            $this->sarana->updateStats();
+        } catch (\Exception $e) {
+            \Log::error('Error updating unit status', [
+                'unit_id' => $this->id,
+                'status' => $status,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Relasi ke peminjaman item units
+     */
+    public function peminjamanItemUnits()
+    {
+        return $this->hasMany(PeminjamanItemUnit::class, 'unit_id');
+    }
+
+    /**
+     * Check if unit is currently borrowed
+     */
+    public function isCurrentlyBorrowed(): bool
+    {
+        try {
+            // Use direct query to avoid complex relationships
+            return \DB::table('peminjaman_item_units')
+                ->join('peminjaman', 'peminjaman_item_units.peminjaman_id', '=', 'peminjaman.id')
+                ->where('peminjaman_item_units.unit_id', $this->id)
+                ->whereIn('peminjaman.status', ['approved', 'picked_up'])
+                ->exists();
+        } catch (\Exception $e) {
+            \Log::error('Error checking if unit is borrowed: ' . $e->getMessage());
+            return false; // Return false if check fails
+        }
     }
 }
