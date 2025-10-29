@@ -1,145 +1,170 @@
-@extends('profile.layout')
+@extends('layouts.app')
 
 @section('title', 'Profil Saya')
+@section('subtitle', 'Informasi akun dan identitas')
+
+@section('header-actions')
+    <a href="{{ route('profile.edit') }}" class="btn btn-primary">
+        <i class="fas fa-edit"></i>
+        Edit Profil
+    </a>
+@endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-user mr-2"></i>
-                        Profil Saya
-                    </h3>
-                    <div class="card-tools">
-                        <a href="{{ route('profile.edit') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-edit mr-1"></i>
-                            Edit Profil
-                        </a>
+<section class="detail-page profile-page">
+    <div class="card">
+        <div class="card-main">
+            @if(session('success'))
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    {{ session('success') }}
+                    <button type="button" class="close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ $errors->first() }}
+                    <button type="button" class="close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            @endif
+
+            <div class="summary-chips">
+                <div class="chip">
+                    <i class="fas fa-user"></i>
+                    {{ $user->username }}
+                </div>
+                <div class="chip">
+                    <i class="fas fa-envelope"></i>
+                    {{ $user->email }}
+                </div>
+                <div class="chip">
+                    <i class="fas fa-calendar-plus"></i>
+                    {{ $user->created_at->format('d/m/Y H:i') }}
+                </div>
+            </div>
+
+            <div class="detail-card-grid two-column">
+                <div class="form-section">
+                    <h2 class="section-title">Informasi Akun</h2>
+                    <div class="detail-block">
+                        <div class="detail-row">
+                            <span class="detail-label">Nama Lengkap</span>
+                            <span class="detail-value">{{ $user->name }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Email</span>
+                            <span class="detail-value">{{ $user->email }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Nomor Handphone</span>
+                            <span class="detail-value">{{ $user->phone ?? '-' }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Username</span>
+                            <span class="detail-value">{{ $user->username }}</span>
+                        </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="table-responsive">
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td width="200"><strong>Nama Lengkap</strong></td>
-                                        <td>{{ $user->name }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Username</strong></td>
-                                        <td>{{ $user->username }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Email</strong></td>
-                                        <td>{{ $user->email }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Nomor Handphone</strong></td>
-                                        <td>{{ $user->phone ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Tipe User</strong></td>
-                                        <td>
-                                            <span class="badge badge-{{ $user->user_type === 'mahasiswa' ? 'info' : 'success' }}">
-                                                {{ $user->user_type_display }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Status</strong></td>
-                                        <td>
-                                            <span class="badge badge-{{ $user->status === 'active' ? 'success' : 'danger' }}">
-                                                {{ $user->status_display }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Role</strong></td>
-                                        <td>{{ $user->getRoleDisplayName() }}</td>
-                                    </tr>
-                                    @if($user->user_type === 'mahasiswa' && $user->student)
-                                        <tr>
-                                            <td><strong>NIM</strong></td>
-                                            <td>{{ $user->student->nim }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Angkatan</strong></td>
-                                            <td>{{ $user->student->angkatan ?? '-' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Jurusan</strong></td>
-                                            <td>{{ $user->student->jurusan->nama_jurusan ?? '-' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Program Studi</strong></td>
-                                            <td>{{ $user->student->prodi->nama_prodi ?? '-' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Status Mahasiswa</strong></td>
-                                            <td>
-                                                <span class="badge badge-{{ $user->student->status_mahasiswa === 'aktif' ? 'success' : 'warning' }}">
-                                                    {{ $user->student->status_display }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    @elseif($user->user_type === 'staff' && $user->staffEmployee)
-                                        <tr>
-                                            <td><strong>NIP</strong></td>
-                                            <td>{{ $user->staffEmployee->nip ?? '-' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Unit</strong></td>
-                                            <td>{{ $user->staffEmployee->unit->nama ?? '-' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Posisi</strong></td>
-                                            <td>{{ $user->staffEmployee->position->nama ?? '-' }}</td>
-                                        </tr>
-                                    @endif
-                                    <tr>
-                                        <td><strong>Profil Lengkap</strong></td>
-                                        <td>
-                                            <span class="badge badge-{{ $user->profile_completed ? 'success' : 'warning' }}">
-                                                {{ $user->profile_completed ? 'Ya' : 'Tidak' }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    @if($user->profile_completed_at)
-                                        <tr>
-                                            <td><strong>Profil Diselesaikan</strong></td>
-                                            <td>{{ $user->profile_completed_at->format('d/m/Y H:i') }}</td>
-                                        </tr>
-                                    @endif
-                                    <tr>
-                                        <td><strong>Terdaftar Sejak</strong></td>
-                                        <td>{{ $user->created_at->format('d/m/Y H:i') }}</td>
-                                    </tr>
-                                </table>
-                            </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Role &amp; Status</h2>
+                    <div class="detail-block">
+                        <div class="detail-row">
+                            <span class="detail-label">Tipe Pengguna</span>
+                            <span class="detail-value">
+                                <span class="badge-role">{{ ucfirst($user->user_type) }}</span>
+                            </span>
                         </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <div class="mb-3">
-                                    <i class="fas fa-user-circle fa-8x text-muted"></i>
-                                </div>
-                                <h5>{{ $user->name }}</h5>
-                                <p class="text-muted">{{ $user->getRoleDisplayName() }}</p>
-                                
-                                @if($user->isSsoUser())
-                                    <div class="alert alert-info">
-                                        <i class="fas fa-info-circle mr-1"></i>
-                                        <small>Akun SSO Poliwangi</small>
-                                    </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Role</span>
+                            <span class="detail-value">
+                                <span class="badge-role">{{ $user->role->display_name ?? $user->role->name ?? '-' }}</span>
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status Akun</span>
+                            <span class="detail-value">
+                                @if($user->status === 'active')
+                                    <span class="status-badge status-approved"><i class="fas fa-check-circle"></i> Aktif</span>
+                                @elseif($user->status === 'inactive')
+                                    <span class="status-badge status-pending"><i class="fas fa-pause-circle"></i> Tidak Aktif</span>
+                                @elseif($user->status === 'blocked')
+                                    <span class="status-badge status-rejected"><i class="fas fa-ban"></i> Diblokir</span>
+                                @else
+                                    -
                                 @endif
-                            </div>
+                            </span>
                         </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status Profil</span>
+                            <span class="detail-value">
+                                @if($user->profile_completed)
+                                    <span class="status-badge status-approved"><i class="fas fa-check-circle"></i> Lengkap</span>
+                                @else
+                                    <span class="status-badge status-pending"><i class="fas fa-exclamation-triangle"></i> Belum Lengkap</span>
+                                @endif
+                            </span>
+                        </div>
+                        @if($user->isBlocked())
+                        <div class="detail-row">
+                            <span class="detail-label">Diblokir Hingga</span>
+                            <span class="detail-value">
+                                <span class="status-badge status-rejected"><i class="fas fa-ban"></i> {{ optional($user->blocked_until)->format('d/m/Y H:i') }}</span>
+                            </span>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
+
+            @if($user->user_type === 'mahasiswa')
+                <div class="form-section">
+                    <h2 class="section-title">Data Mahasiswa</h2>
+                    <div class="detail-block">
+                        <div class="detail-row">
+                            <span class="detail-label">NIM</span>
+                            <span class="detail-value">{{ $user->student->nim ?? $user->username }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Angkatan</span>
+                            <span class="detail-value">{{ $user->student->angkatan ?? '-' }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Jurusan</span>
+                            <span class="detail-value">{{ $user->student->jurusan->nama_jurusan ?? '-' }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Program Studi</span>
+                            <span class="detail-value">{{ $user->student->prodi->nama_prodi ?? '-' }}</span>
+                        </div>
+                    </div>
+                </div>
+            @elseif($user->user_type === 'staff')
+                <div class="form-section">
+                    <h2 class="section-title">Data Staff</h2>
+                    <div class="detail-block">
+                        <div class="detail-row">
+                            <span class="detail-label">NIP</span>
+                            <span class="detail-value">{{ $user->staffEmployee->nip ?? '-' }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Unit</span>
+                            <span class="detail-value">{{ $user->staffEmployee->unit->nama ?? '-' }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Posisi</span>
+                            <span class="detail-value">{{ $user->staffEmployee->position->nama ?? '-' }}</span>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
-</div>
+</section>
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/profile.css') }}?v={{ filemtime(public_path('css/profile.css')) }}">
+@endpush
 @endsection

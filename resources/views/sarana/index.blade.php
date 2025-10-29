@@ -1,190 +1,434 @@
-@extends('user-management.layout')
+@extends('layouts.app')
 
-@section('title', 'Manajemen Sarana')
+@section('title', 'Daftar Sarana')
+@section('subtitle', 'Kelola data sarana dan unit yang tersedia')
+
+@section('header-actions')
+@can('sarpras.create')
+<a href="{{ route('sarana.create') }}" class="btn btn-primary">
+    <i class="fas fa-plus"></i>
+    Tambah Sarana
+</a>
+@endcan
+@endsection
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/sarana.css') }}?v={{ filemtime(public_path('css/sarana.css')) }}">
+@endpush
 
 @section('content')
-<div class="row">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="card-title">Manajemen Sarana</h3>
-                @if(Auth::user()->hasPermission('sarpras.create'))
-                <a href="{{ route('sarana.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Tambah Sarana
-                </a>
-                @endif
-            </div>
-            <div class="card-body">
-                <!-- Filter Form -->
-                <form method="GET" action="{{ route('sarana.index') }}" class="mb-4">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="search">Cari:</label>
-                                <input type="text" class="form-control" id="search" name="search" 
-                                       value="{{ request('search') }}" placeholder="Nama, deskripsi, atau lokasi...">
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="kategori_id">Kategori:</label>
-                                <select class="form-control" id="kategori_id" name="kategori_id">
-                                    <option value="">Semua Kategori</option>
-                                    @foreach($kategori as $kat)
-                                    <option value="{{ $kat->id }}" {{ request('kategori_id') == $kat->id ? 'selected' : '' }}>
-                                        {{ $kat->name }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="type">Tipe:</label>
-                                <select class="form-control" id="type" name="type">
-                                    <option value="">Semua Tipe</option>
-                                    <option value="serialized" {{ request('type') == 'serialized' ? 'selected' : '' }}>Serialized</option>
-                                    <option value="pooled" {{ request('type') == 'pooled' ? 'selected' : '' }}>Pooled</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="status">Status:</label>
-                                <select class="form-control" id="status" name="status">
-                                    <option value="">Semua Status</option>
-                                    <option value="tersedia" {{ request('status') == 'tersedia' ? 'selected' : '' }}>Tersedia</option>
-                                    <option value="kosong" {{ request('status') == 'kosong' ? 'selected' : '' }}>Kosong</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary">Filter</button>
-                                    <a href="{{ route('sarana.index') }}" class="btn btn-secondary">Reset</a>
-                                </div>
-                            </div>
+<div class="page-content">
+    <div class="card card--headerless">
+        <div class="card-main">
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <form method="GET" action="{{ route('sarana.index') }}" class="filters-form">
+                <div class="filters-grid">
+                    <div class="filters-group">
+                        <label class="filters-label">Pencarian</label>
+                        <div class="search-input-wrapper">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ request('search') }}" 
+                                   placeholder="Cari nama sarana..." 
+                                   class="search-input">
+                            <i class="fas fa-search search-icon"></i>
                         </div>
                     </div>
-                </form>
+                    
+                    <div class="filters-group">
+                        <label class="filters-label">Kategori</label>
+                        <select name="kategori_id" class="filters-select">
+                            <option value="">Semua Kategori</option>
+                            @foreach($kategoriSarana as $kategori)
+                                <option value="{{ $kategori->id }}" 
+                                        {{ request('kategori_id') == $kategori->id ? 'selected' : '' }}>
+                                    {{ $kategori->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div class="filters-group">
+                        <label class="filters-label">Tipe</label>
+                        <select name="type" class="filters-select">
+                            <option value="">Semua Tipe</option>
+                            <option value="serialized" {{ request('type') == 'serialized' ? 'selected' : '' }}>
+                                Serialized
+                            </option>
+                            <option value="pooled" {{ request('type') == 'pooled' ? 'selected' : '' }}>
+                                Pooled
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="filters-group">
+                        <label class="filters-label">Status</label>
+                        <select name="status" class="filters-select">
+                            <option value="">Semua Status</option>
+                            <option value="tersedia" {{ request('status') == 'tersedia' ? 'selected' : '' }}>
+                                Tersedia
+                            </option>
+                            <option value="rusak" {{ request('status') == 'rusak' ? 'selected' : '' }}>
+                                Rusak
+                            </option>
+                            <option value="maintenance" {{ request('status') == 'maintenance' ? 'selected' : '' }}>
+                                Maintenance
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
 
-                <!-- Sarana Table -->
-                <div class="table-responsive">
-                    <table class="table table-striped">
+        <!-- Table Section -->
+        <div class="table-section">
+            @if($sarana->count() > 0)
+                <!-- Table Wrapper -->
+                <div class="table-wrapper">
+                    <table class="table">
                         <thead>
                             <tr>
-                                <th>No</th>
-                                <th>Nama</th>
-                                <th>Kategori</th>
-                                <th>Tipe</th>
-                                <th>Total</th>
-                                <th>Tersedia</th>
-                                <th>Status</th>
-                                <th>Lokasi</th>
-                                <th>Aksi</th>
+                                <th class="table-head" style="width: 60px;">No</th>
+                                <th class="table-head" style="width: 200px;">Nama Sarana</th>
+                                <th class="table-head" style="width: 120px;">Kategori</th>
+                                <th class="table-head" style="width: 100px;">Tipe</th>
+                                <th class="table-head" style="width: 100px;">Total Unit</th>
+                                <th class="table-head" style="width: 100px;">Tersedia</th>
+                                <th class="table-head" style="width: 100px;">Dipinjam</th>
+                                <th class="table-head" style="width: 100px;">Rusak</th>
+                                <th class="table-head" style="width: 120px;">Lokasi</th>
+                                <th class="table-head" style="width: 150px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($sarana as $item)
+                            @php
+                                $startNumber = method_exists($sarana, 'firstItem') ? $sarana->firstItem() : 1;
+                            @endphp
+                            @foreach($sarana as $item)
                             <tr>
-                                <td>{{ $loop->iteration + ($sarana->currentPage() - 1) * $sarana->perPage() }}</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        @if($item->image_url)
-                                        <img src="{{ asset('storage/' . $item->image_url) }}" 
-                                             alt="{{ $item->name }}" 
-                                             class="rounded me-2" 
-                                             style="width: 40px; height: 40px; object-fit: cover;">
-                                        @else
-                                        <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
-                                             style="width: 40px; height: 40px;">
-                                            <i class="fas fa-image text-muted"></i>
-                                        </div>
-                                        @endif
-                                        <div>
-                                            <strong>{{ $item->name }}</strong>
-                                            @if($item->description)
-                                            <br><small class="text-muted">{{ Str::limit($item->description, 50) }}</small>
-                                            @endif
+                                <td class="table-body table-number">
+                                    {{ $startNumber + $loop->index }}
+                                </td>
+                                <td class="table-body">
+                                    <div class="user-info">
+                                        <div class="user-details">
+                                            <div class="user-name">{{ $item->name }}</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td>
-                                    <span class="badge badge-info">{{ $item->kategori->name }}</span>
+                                <td class="table-body">
+                                    <span class="badge badge-role">{{ $item->kategori->name }}</span>
                                 </td>
-                                <td>
-                                    <span class="badge badge-{{ $item->type == 'serialized' ? 'primary' : 'success' }}">
-                                        {{ ucfirst($item->type) }}
-                                    </span>
-                                </td>
-                                <td>{{ $item->jumlah_total }}</td>
-                                <td>
-                                    <span class="badge badge-{{ $item->jumlah_tersedia > 0 ? 'success' : 'danger' }}">
-                                        {{ $item->jumlah_tersedia }}
-                                    </span>
-                                </td>
-                                <td>
-                                    @if($item->jumlah_tersedia > 0)
-                                        <span class="badge badge-success">Tersedia</span>
+                                <td class="table-body">
+                                    @if($item->type == 'serialized')
+                                        <span class="badge badge-in_progress">Serialized</span>
                                     @else
-                                        <span class="badge badge-danger">Kosong</span>
+                                        <span class="badge badge-done">Pooled</span>
                                     @endif
                                 </td>
-                                <td>{{ $item->lokasi ?? '-' }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        @if(Auth::user()->hasPermission('sarpras.view'))
+                                <td class="table-body">
+                                    <strong>{{ $item->jumlah_total }}</strong>
+                                </td>
+                                <td class="table-body">
+                                    <span class="badge badge-status_active">{{ $item->jumlah_tersedia }}</span>
+                                </td>
+                                <td class="table-body">
+                                    @php
+                                        $jumlah_dipinjam = $item->peminjamanItems()
+                                            ->whereHas('peminjaman', function($query) {
+                                                $query->whereIn('status', ['approved', 'picked_up']);
+                                            })
+                                            ->sum('qty_approved');
+                                    @endphp
+                                    @if($jumlah_dipinjam > 0)
+                                        <span class="badge badge-warning">{{ $jumlah_dipinjam }}</span>
+                                    @else
+                                        <span class="badge badge-status_active">0</span>
+                                    @endif
+                                </td>
+                                <td class="table-body">
+                                    @if($item->jumlah_rusak > 0)
+                                        <span class="badge badge-status_blocked">{{ $item->jumlah_rusak }}</span>
+                                    @else
+                                        <span class="badge badge-status_active">0</span>
+                                    @endif
+                                </td>
+                                <td class="table-body">
+                                    {{ $item->lokasi ?? '-' }}
+                                </td>
+                                <td class="table-body">
+                                    <div class="action-buttons">
+                                        @can('sarpras.view')
                                         <a href="{{ route('sarana.show', $item->id) }}" 
-                                           class="btn btn-sm btn-info" title="Lihat Detail">
+                                           class="action-button action-button-view" 
+                                           title="Lihat Detail">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        @endif
+                                        @endcan
                                         
-                                        @if(Auth::user()->hasPermission('sarpras.edit'))
+                                        @can('sarpras.edit')
                                         <a href="{{ route('sarana.edit', $item->id) }}" 
-                                           class="btn btn-sm btn-warning" title="Edit">
+                                           class="action-button action-button-edit" 
+                                           title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        @endcan
+                                        
+                                        @if($item->type == 'serialized')
+                                            @can('sarpras.unit_manage')
+                                            <a href="{{ route('sarana.units', $item->id) }}" 
+                                               class="action-button action-button-reset" 
+                                               title="Kelola Unit">
+                                                <i class="fas fa-cogs"></i>
+                                            </a>
+                                            @endcan
                                         @endif
                                         
-                                        @if($item->type == 'serialized' && Auth::user()->hasPermission('sarpras.unit_manage'))
-                                        <a href="{{ route('sarana.units', $item->id) }}" 
-                                           class="btn btn-sm btn-secondary" title="Kelola Unit">
-                                            <i class="fas fa-cogs"></i>
-                                        </a>
-                                        @endif
-                                        
-                                        @if(Auth::user()->hasPermission('sarpras.delete'))
-                                        <form action="{{ route('sarana.destroy', $item->id) }}" 
-                                              method="POST" class="d-inline"
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus sarana ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                        @endif
+                                        @can('sarpras.delete')
+                                        <button type="button" 
+                                                class="action-button action-button-delete" 
+                                                onclick="confirmDelete({{ $item->id }})"
+                                                title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
-                            @empty
-                            <tr>
-                                <td colspan="9" class="text-center">Tidak ada data sarana.</td>
-                            </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination -->
-                <div class="d-flex justify-content-center">
-                    {{ $sarana->appends(request()->query())->links() }}
+                <div class="pagination-section">
+                    <div class="pagination-info">
+                        <span class="pagination-text">
+                            Menampilkan {{ $sarana->firstItem() }}-{{ $sarana->lastItem() }} dari {{ $sarana->total() }} sarana
+                        </span>
+                    </div>
+                    <div class="pagination-controls">
+                        <div class="pagination-wrapper">
+                            {{ $sarana->appends(request()->query())->links('pagination.custom') }}
+                        </div>
+                    </div>
                 </div>
-            </div>
+            @else
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <div class="empty-state-container">
+                        <i class="fas fa-tools empty-state-icon"></i>
+                        <h3 class="empty-state-title">Tidak Ada Data Sarana</h3>
+                        <p class="empty-state-description">
+                            @if(request()->filled('search') || request()->filled('kategori_id') || request()->filled('type') || request()->filled('status'))
+                                Tidak ada sarana yang sesuai dengan filter yang dipilih.
+                            @else
+                                Belum ada data sarana yang tersedia. 
+                                @can('sarpras.create')
+                                    Klik tombol "Tambah Sarana" untuk menambahkan data sarana pertama.
+                                @endcan
+                            @endif
+                        </p>
+                        @if(request()->filled('search') || request()->filled('kategori_id') || request()->filled('type') || request()->filled('status'))
+                            <a href="{{ route('sarana.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i>
+                                Hapus Filter
+                            </a>
+                        @else
+                            @can('sarpras.create')
+                            <a href="{{ route('sarana.create') }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Tambah Sarana Pertama
+                            </a>
+                            @endcan
+                        @endif
+                    </div>
+                </div>
+            @endif
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="dialog-backdrop" style="display: none;">
+    <div class="dialog">
+        <div class="dialog-header">
+            <h3>Konfirmasi Hapus</h3>
+        </div>
+        <div class="dialog-body">
+            <p>Apakah Anda yakin ingin menghapus sarana ini? Tindakan ini tidak dapat dibatalkan.</p>
+        </div>
+        <div class="dialog-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Batal</button>
+            <form id="deleteForm" method="POST" style="display: inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">Hapus</button>
+            </form>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/sarana.js') }}"></script>
+<script>
+function confirmDelete(id) {
+    const modal = document.getElementById('deleteModal');
+    const form = document.getElementById('deleteForm');
+    
+    form.action = `/sarana/${id}`;
+    modal.style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.style.display = 'none';
+}
+
+// Close modal when clicking backdrop
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDeleteModal();
+    }
+});
+
+// Auto-submit form when filter changes
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.querySelector('.filters-form');
+    const filterSelects = document.querySelectorAll('.filters-select');
+    
+    // Auto-submit when select changes
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
+    
+    // Auto-submit when search input changes (with debounce)
+    const searchInput = document.querySelector('.search-input');
+    let searchTimeout;
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                filterForm.submit();
+            }, 500); // 500ms delay
+        });
+    }
+});
+</script>
+
+<style>
+/* Badge Warning untuk Status Dipinjam */
+.badge-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Badge Warning untuk Status Dipinjam */
+.badge-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Action Buttons - Sesuai Style Guide */
+.action-buttons {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.action-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    background: #ffffff;
+    color: #333333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.action-button:hover {
+    background: #f5f5f5;
+    border-color: #cccccc;
+    transform: translateY(-1px);
+}
+
+/* Action Button Variants */
+.action-button-view:hover {
+    background: #e7f1ff;
+    border-color: #cfe3ff;
+    color: #0d6efd;
+}
+
+.action-button-edit:hover {
+    background: #e7f1ff;
+    border-color: #cfe3ff;
+    color: #0d6efd;
+}
+
+.action-button-reset:hover {
+    background: #e7f1ff;
+    border-color: #cfe3ff;
+    color: #0d6efd;
+}
+
+.action-button-delete {
+    background: #fff5f5;
+    border-color: #fed7d7;
+    color: #e53e3e;
+}
+
+.action-button-delete:hover {
+    background: #fed7d7;
+    border-color: #feb2b2;
+    color: #c53030;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(229, 62, 62, 0.2);
+}
+
+/* Mobile Responsive untuk Action Buttons */
+@media (max-width: 768px) {
+    .action-buttons {
+        gap: 4px;
+    }
+    
+    .action-button {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+}
+</style>
+@endpush

@@ -1,121 +1,116 @@
-@extends('user-management.layout')
+@extends('layouts.app')
 
 @section('title', 'Tambah Kategori Sarana')
+@section('subtitle', 'Buat kategori baru untuk mengelompokkan sarana')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/components/user-management-create.css') }}?v={{ filemtime(public_path('css/components/user-management-create.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/kategori-sarana.css') }}?v={{ filemtime(public_path('css/kategori-sarana.css')) }}">
+@endpush
 
 @section('content')
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Tambah Kategori Sarana Baru</h3>
-            </div>
-            <div class="card-body">
-                <form action="{{ route('kategori-sarana.store') }}" method="POST">
-                    @csrf
-                    
-                    <div class="form-group">
-                        <label for="name">Nama Kategori <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                               id="name" name="name" value="{{ old('name') }}" 
-                               placeholder="Contoh: Proyektor, Laptop, Sound System" required>
-                        @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+<section class="detail-page kategori-sarana-create-page">
+    <div class="card kategori-form-card">
+        <div class="card-main">
+            <form method="POST" action="{{ route('kategori-sarana.store') }}" class="kategori-form user-create-form">
+                @csrf
 
-                    <div class="form-group">
-                        <label for="description">Deskripsi</label>
-                        <textarea class="form-control @error('description') is-invalid @enderror" 
-                                  id="description" name="description" rows="4" 
-                                  placeholder="Deskripsi kategori sarana...">{{ old('description') }}</textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="icon">Icon (Font Awesome)</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">
-                                    <i id="icon-preview" class="fas fa-cube"></i>
-                                </span>
+                <div class="detail-card-grid">
+                    <div class="form-section">
+                        <h3 class="section-title">Informasi Kategori</h3>
+                        <div class="detail-block form-grid form-grid--single">
+                            <div class="form-group">
+                                <label for="name" class="form-label required">Nama Kategori</label>
+                                <input type="text"
+                                       id="name"
+                                       name="name"
+                                       value="{{ old('name') }}"
+                                       class="form-input @error('name') is-invalid @enderror"
+                                       placeholder="Masukkan nama kategori"
+                                       required>
+                                @error('name')
+                                    <div class="form-error">{{ $message }}</div>
+                                @enderror
                             </div>
-                            <input type="text" class="form-control @error('icon') is-invalid @enderror" 
-                                   id="icon" name="icon" value="{{ old('icon') }}" 
-                                   placeholder="fas fa-cube, fas fa-laptop, fas fa-tv">
-                        </div>
-                        @error('icon')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="form-text text-muted">
-                            Gunakan class Font Awesome. Contoh: fas fa-cube, fas fa-laptop, fas fa-tv
-                        </small>
-                    </div>
 
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Simpan
-                        </button>
-                        <a href="{{ route('kategori-sarana.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Kembali
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title">Contoh Icon Font Awesome</h5>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-6 mb-3">
-                        <i class="fas fa-cube fa-2x text-primary"></i>
-                        <br><small>fas fa-cube</small>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <i class="fas fa-laptop fa-2x text-success"></i>
-                        <br><small>fas fa-laptop</small>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <i class="fas fa-tv fa-2x text-info"></i>
-                        <br><small>fas fa-tv</small>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <i class="fas fa-microphone fa-2x text-warning"></i>
-                        <br><small>fas fa-microphone</small>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <i class="fas fa-chair fa-2x text-secondary"></i>
-                        <br><small>fas fa-chair</small>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <i class="fas fa-table fa-2x text-dark"></i>
-                        <br><small>fas fa-table</small>
+                            <div class="form-group form-group--full">
+                                <label for="description" class="form-label">Deskripsi</label>
+                                <textarea id="description"
+                                          name="description"
+                                          class="form-textarea @error('description') is-invalid @enderror"
+                                          placeholder="Masukkan deskripsi kategori (opsional)"
+                                          rows="4"
+                                          maxlength="500">{{ old('description') }}</textarea>
+                                <div class="form-help">
+                                    <span id="charCount">0</span>/500 karakter
+                                </div>
+                                @error('description')
+                                    <div class="form-error">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="form-group form-group--inline">
+                                <div class="form-checkbox">
+                                    <input type="checkbox"
+                                           id="is_active"
+                                           name="is_active"
+                                           value="1"
+                                           {{ old('is_active', true) ? 'checked' : '' }}
+                                           class="form-checkbox-input">
+                                    <label for="is_active" class="form-checkbox-label">
+                                        Kategori aktif
+                                    </label>
+                                </div>
+                                <div class="form-help">Kategori aktif dapat digunakan untuk sarana baru</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Tindakan</h3>
+                    <div class="detail-actions">
+                        <a href="{{ route('kategori-sarana.index') }}" class="btn btn-secondary btn-cancel">
+                            <i class="fas fa-times"></i>
+                            Batal
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Simpan Kategori
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
-</div>
+</section>
+@endsection
 
+@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const iconInput = document.getElementById('icon');
-    const iconPreview = document.getElementById('icon-preview');
+    const descriptionTextarea = document.getElementById('description');
+    const charCount = document.getElementById('charCount');
     
-    iconInput.addEventListener('input', function() {
-        const iconClass = this.value.trim();
-        if (iconClass) {
-            iconPreview.className = iconClass;
-        } else {
-            iconPreview.className = 'fas fa-cube';
+    // Update character count
+    function updateCharCount() {
+        const currentLength = descriptionTextarea.value.length;
+        charCount.textContent = currentLength;
+        
+        charCount.classList.remove('is-warning', 'is-danger');
+
+        if (currentLength > 450) {
+            charCount.classList.add('is-danger');
+        } else if (currentLength > 400) {
+            charCount.classList.add('is-warning');
         }
-    });
+    }
+    
+    // Set initial count
+    updateCharCount();
+    
+    // Update on input
+    descriptionTextarea.addEventListener('input', updateCharCount);
 });
 </script>
-@endsection
+@endpush

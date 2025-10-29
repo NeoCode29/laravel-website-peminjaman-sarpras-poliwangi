@@ -3,32 +3,23 @@
 @section('title', 'Daftar Permission')
 @section('subtitle', 'Kelola permission sistem')
 
+@section('header-actions')
+<a href="{{ route('permission-management.create') }}" class="btn btn-primary">
+    <i class="fas fa-plus"></i>
+    Tambah Permission
+</a>
+@endsection
+
 @section('content')
 <div class="permission-management-container">
     <!-- Single Card -->
     <div class="card">
-        <div class="card-header">
-            <div class="card-header-content">
-                <div class="card-header-title">
-                    <h1 class="title">
-                        <i class="fas fa-key title-icon"></i>
-                        Daftar Permission
-                    </h1>
-                    <p class="subtitle">Kelola permission sistem untuk mengatur akses pengguna</p>
-                </div>
-                <div class="card-header-actions">
-                    <a href="{{ route('permission-management.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        Tambah Permission
-                    </a>
-                </div>
-            </div>
-        </div>
+        <div class="card-header" aria-hidden="true"></div>
 
         <div class="card-main">
             <!-- Filters Section -->
             <form method="GET" action="{{ route('permission-management.index') }}" class="filters-form">
-                    <div class="filters-grid">
+                <div class="filters-grid">
                     <div class="form-group">
                         <label class="form-label">Cari Permission</label>
                             <div class="search-input-wrapper">
@@ -246,6 +237,11 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/components/permission-management.css') }}">
+<style>
+.content-back-button {
+    display: none !important;
+}
+</style>
 @endpush
 
 @push('scripts')

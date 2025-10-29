@@ -3,28 +3,19 @@
 @section('title', 'Daftar User')
 @section('subtitle', 'Kelola data pengguna sistem')
 
+@section('header-actions')
+<a href="{{ route('user-management.create') }}" class="btn btn-primary">
+    <i class="fas fa-plus"></i>
+    Tambah User
+</a>
+@endsection
+
 @section('content')
 <div class="page-content">
     <!-- User List Card -->
-    <div class="card">
+    <div class="card card--headerless">
         <!-- Card Header -->
-        <div class="card-header">
-            <div class="card-header-content">
-                <div class="card-header-title">
-                    <h1 class="card-title">
-                        <i class="fas fa-users"></i>
-                        Daftar User
-                    </h1>
-                    <p class="card-subtitle">Kelola data pengguna sistem</p>
-                </div>
-                <div class="card-header-actions">
-                    <a href="{{ route('user-management.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        Tambah User
-                    </a>
-                </div>
-            </div>
-        </div>
+        <div class="card-header" aria-hidden="true"></div>
 
         <!-- Card Main -->
         <div class="card-main">
@@ -293,6 +284,11 @@
 
 @push('styles')
 <style>
+/* Page Header Adjustment */
+.content-back-button {
+    display: none !important;
+}
+
 /* Import Poppins Font */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
@@ -322,50 +318,8 @@ body {
 }
 
 /* Card Header */
-.card-header {
-    padding: 20px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.card-header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-}
-
-.card-header-title {
-    flex: 1;
-}
-
-.card-title {
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 1.2;
-    color: #333333;
-    margin: 0 0 4px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.card-title i {
-    color: #666666;
-    font-size: 20px;
-}
-
-.card-subtitle {
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.4;
-    color: #666666;
-    margin: 0;
-}
-
-.card-header-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
+.card--headerless > .card-header {
+    display: none;
 }
 
 /* Card Main */
@@ -1014,26 +968,33 @@ body {
 }
 
 @media (max-width: 768px) {
-    .card-header-content {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
+    .filters-section {
+        margin-bottom: 20px;
     }
-    
-    .card-header-actions {
-        justify-content: stretch;
+
+    .filters-form {
+        padding: 16px;
+        gap: 16px;
     }
-    
-    .card-header-actions .btn {
-        flex: 1;
-        justify-content: center;
-    }
-    
+
     .filters-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
     }
-    
-    
+
+    .filter-group {
+        gap: 8px;
+    }
+
+    .search-input,
+    .filter-select {
+        width: 100%;
+    }
+
+    .detail-card-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
     .pagination-section {
         flex-direction: column;
         gap: 16px;

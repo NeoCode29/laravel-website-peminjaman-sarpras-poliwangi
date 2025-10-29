@@ -35,10 +35,6 @@
                    href="{{ route('permission-management.index') }}">
                     🔑 Permission Management
                 </a>
-                <a class="nav-link {{ request()->is('role-permission-matrix*') ? 'active' : '' }}" 
-                   href="{{ route('role-permission-matrix.index') }}">
-                    📊 Permission Matrix
-                </a>
                 <hr style="border: none; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;">
                 <a class="nav-link {{ request()->is('sarana*') ? 'active' : '' }}" 
                    href="{{ route('sarana.index') }}">

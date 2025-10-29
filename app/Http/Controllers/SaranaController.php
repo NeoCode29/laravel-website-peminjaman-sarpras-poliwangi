@@ -33,9 +33,9 @@ class SaranaController extends Controller
     {
         $filters = $request->only(['kategori_id', 'type', 'status', 'search']);
         $sarana = $this->service->list($filters, 15);
-        $kategori = KategoriSarana::orderBy('name')->get();
+        $kategoriSarana = KategoriSarana::orderBy('name')->get();
 
-        return view('sarana.index', compact('sarana', 'kategori'));
+        return view('sarana.index', compact('sarana', 'kategoriSarana'));
     }
 
     /**
@@ -43,8 +43,8 @@ class SaranaController extends Controller
      */
     public function create()
     {
-        $kategori = KategoriSarana::orderBy('name')->get();
-        return view('sarana.create', compact('kategori'));
+        $kategoriSarana = KategoriSarana::orderBy('name')->get();
+        return view('sarana.create', compact('kategoriSarana'));
     }
 
     /**
@@ -75,9 +75,18 @@ class SaranaController extends Controller
      */
     public function show(Sarana $sarana)
     {
-        $sarana->load(['kategori', 'creator', 'units']);
+        $sarana->load(['kategori', 'creator', 'units', 'approvers.approver']);
         
-        return view('sarana.show', compact('sarana'));
+        // Get users for approver selection (hanya role yang diizinkan)
+        $users = \App\Models\User::where('status', 'active')
+            ->where('id', '!=', Auth::id()) // Exclude current user
+            ->whereHas('roles', function($query) {
+                $query->whereIn('name', ['admin', 'approver', 'global_approver', 'specific_approver']);
+            })
+            ->orderBy('name')
+            ->get();
+        
+        return view('sarana.show', compact('sarana', 'users'));
     }
 
     /**
@@ -85,8 +94,8 @@ class SaranaController extends Controller
      */
     public function edit(Sarana $sarana)
     {
-        $kategori = KategoriSarana::orderBy('name')->get();
-        return view('sarana.edit', compact('sarana', 'kategori'));
+        $kategoriSarana = KategoriSarana::orderBy('name')->get();
+        return view('sarana.edit', compact('sarana', 'kategoriSarana'));
     }
 
     /**
@@ -143,7 +152,7 @@ class SaranaController extends Controller
                 ->with('error', 'Hanya sarana bertipe serialized yang dapat dikelola unitnya.');
         }
 
-        $units = $sarana->units()->orderBy('unit_code')->get();
+        $units = $sarana->units()->orderBy('unit_code')->paginate(15);
         return view('sarana.units', compact('sarana', 'units'));
     }
 
@@ -154,23 +163,57 @@ class SaranaController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'unit_code' => 'required|string|max:80',
+            'unit_status' => 'required|in:tersedia,rusak,maintenance,hilang',
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors();
+            $errorMessages = [];
+            
+            if ($errors->has('unit_code')) {
+                $errorMessages[] = 'Kode unit: ' . implode(', ', $errors->get('unit_code'));
+            }
+            if ($errors->has('unit_status')) {
+                $errorMessages[] = 'Status unit: ' . implode(', ', $errors->get('unit_status'));
+            }
+            
+            $message = 'Validasi gagal. ' . implode(' ', $errorMessages);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'errors' => $errors
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
         try {
-            $unit = $this->service->addUnit($sarana, $request->unit_code);
+            $unit = $this->service->addUnit($sarana, $request->unit_code, $request->unit_status);
 
             // Audit log: create unit
             $this->logAudit('create', 'SaranaUnit', $unit->id, null, $unit->toArray(), 'Menambah unit sarana');
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Unit berhasil ditambahkan.',
+                    'unit' => $unit
+                ]);
+            }
+
             return redirect()->back()
                 ->with('success', 'Unit berhasil ditambahkan.');
         } catch (\InvalidArgumentException $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 400);
+            }
             return redirect()->back()
                 ->with('error', $e->getMessage())
                 ->withInput();
@@ -178,29 +221,63 @@ class SaranaController extends Controller
     }
 
     /**
-     * Update unit status
+     * Update unit
      */
     public function updateUnit(Request $request, SaranaUnit $unit)
     {
         $validator = Validator::make($request->all(), [
+            'unit_code' => 'required|string|max:80',
             'unit_status' => 'required|in:tersedia,rusak,maintenance,hilang',
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors();
+            $errorMessages = [];
+            
+            if ($errors->has('unit_code')) {
+                $errorMessages[] = 'Kode unit: ' . implode(', ', $errors->get('unit_code'));
+            }
+            if ($errors->has('unit_status')) {
+                $errorMessages[] = 'Status unit: ' . implode(', ', $errors->get('unit_status'));
+            }
+            
+            $message = 'Validasi gagal. ' . implode(' ', $errorMessages);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'errors' => $errors
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator);
         }
 
         try {
             $old = $unit->toArray();
-            $this->service->updateUnitStatus($unit, $request->unit_status);
+            $this->service->updateUnit($unit, $request->only(['unit_code', 'unit_status']));
             
             // Audit log: update unit
-            $this->logAudit('update', 'SaranaUnit', $unit->id, $old, $unit->fresh()->toArray(), 'Memperbarui status unit sarana');
+            $this->logAudit('update', 'SaranaUnit', $unit->id, $old, $unit->fresh()->toArray(), 'Memperbarui unit sarana');
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Unit berhasil diperbarui.',
+                    'unit' => $unit->fresh()
+                ]);
+            }
 
             return redirect()->back()
-                ->with('success', 'Status unit berhasil diperbarui.');
+                ->with('success', 'Unit berhasil diperbarui.');
         } catch (\InvalidArgumentException $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 400);
+            }
             return redirect()->back()
                 ->with('error', $e->getMessage());
         }
@@ -209,20 +286,93 @@ class SaranaController extends Controller
     /**
      * Delete unit
      */
-    public function destroyUnit(SaranaUnit $unit)
+    public function destroyUnit(Request $request, $saranaId, $unitId)
     {
+        \Log::info('Starting delete unit process', ['sarana_id' => $saranaId, 'unit_id' => $unitId]);
+        
         try {
+            // Find the unit manually
+            $unit = SaranaUnit::where('id', $unitId)
+                ->where('sarana_id', $saranaId)
+                ->first();
+                
+            if (!$unit) {
+                $message = 'Unit tidak ditemukan atau tidak milik sarana ini.';
+                \Log::warning('Unit not found', ['sarana_id' => $saranaId, 'unit_id' => $unitId]);
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message
+                    ], 404);
+                }
+                return redirect()->back()->with('error', $message);
+            }
+            
+            \Log::info('Unit found', ['unit_id' => $unit->id, 'unit_code' => $unit->unit_code]);
+            
+            // Check if unit is currently borrowed
+            \Log::info('Checking if unit is borrowed...');
+            try {
+                $isBorrowed = $unit->isCurrentlyBorrowed();
+                \Log::info('Unit borrowed check result', ['is_borrowed' => $isBorrowed]);
+                
+                if ($isBorrowed) {
+                    $message = 'Unit tidak dapat dihapus karena sedang dipinjam.';
+                    \Log::info('Unit is borrowed, preventing deletion');
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => $message
+                        ], 400);
+                    }
+                    return redirect()->back()->with('error', $message);
+                }
+            } catch (\Exception $e) {
+                // If check fails, log but continue with deletion
+                \Log::warning('Failed to check if unit is borrowed: ' . $e->getMessage());
+            }
+
+            \Log::info('Calling service to delete unit...');
             $old = $unit->toArray();
             $this->service->deleteUnit($unit);
+            \Log::info('Unit deleted successfully');
 
             // Audit log: delete unit
-            $this->logAudit('delete', 'SaranaUnit', $old['id'] ?? null, $old, null, 'Menghapus unit sarana');
+            try {
+                $this->logAudit('delete', 'SaranaUnit', $old['id'] ?? null, $old, null, 'Menghapus unit sarana');
+            } catch (\Exception $e) {
+                \Log::warning('Failed to log audit: ' . $e->getMessage());
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Unit ' . $unit->unit_code . ' berhasil dihapus.'
+                ]);
+            }
 
             return redirect()->back()
-                ->with('success', 'Unit berhasil dihapus.');
+                ->with('success', 'Unit ' . $unit->unit_code . ' berhasil dihapus.');
         } catch (\InvalidArgumentException $e) {
+            \Log::error('InvalidArgumentException in destroyUnit', ['error' => $e->getMessage(), 'unit_id' => $unitId]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 400);
+            }
             return redirect()->back()
                 ->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            \Log::error('Exception in destroyUnit', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString(), 'unit_id' => $unitId]);
+            $message = 'Terjadi kesalahan saat menghapus unit: ' . $e->getMessage();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 500);
+            }
+            return redirect()->back()->with('error', $message);
         }
     }
 
@@ -234,23 +384,60 @@ class SaranaController extends Controller
         $validator = Validator::make($request->all(), [
             'unit_codes' => 'required|array|min:1',
             'unit_codes.*' => 'required|string|max:80',
+            'unit_status' => 'required|in:tersedia,rusak,maintenance,hilang',
         ]);
 
         if ($validator->fails()) {
+            $errors = $validator->errors();
+            $errorMessages = [];
+            
+            if ($errors->has('unit_codes')) {
+                $errorMessages[] = 'Daftar kode unit: ' . implode(', ', $errors->get('unit_codes'));
+            }
+            if ($errors->has('unit_codes.*')) {
+                $errorMessages[] = 'Format kode unit tidak valid';
+            }
+            if ($errors->has('unit_status')) {
+                $errorMessages[] = 'Status unit: ' . implode(', ', $errors->get('unit_status'));
+            }
+            
+            $message = 'Validasi gagal. ' . implode(' ', $errorMessages);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'errors' => $errors
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
         try {
-            $units = $this->service->addBulkUnits($sarana, $request->unit_codes);
+            $units = $this->service->addBulkUnits($sarana, $request->unit_codes, $request->unit_status);
 
             // Audit log: bulk create units
             $this->logAudit('create', 'SaranaUnit', null, null, ['count' => count($units)], 'Menambah ' . count($units) . ' unit sarana sekaligus');
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => count($units) . ' unit berhasil ditambahkan.',
+                    'units' => $units
+                ]);
+            }
+
             return redirect()->back()
                 ->with('success', count($units) . ' unit berhasil ditambahkan.');
         } catch (\InvalidArgumentException $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 400);
+            }
             return redirect()->back()
                 ->with('error', $e->getMessage())
                 ->withInput();
@@ -319,5 +506,26 @@ class SaranaController extends Controller
                 ->with('error', $e->getMessage())
                 ->withInput();
         }
+    }
+
+    /**
+     * Log audit trail
+     */
+    private function logAudit(string $action, string $model, ?int $modelId, ?array $oldValues, ?array $newValues, string $description): void
+    {
+        // Implementation for audit logging
+        // This would typically use an audit service or model
+        \Log::info('Audit Log', [
+            'action' => $action,
+            'model' => $model,
+            'model_id' => $modelId,
+            'old_values' => $oldValues,
+            'new_values' => $newValues,
+            'description' => $description,
+            'user_id' => auth()->id(),
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'timestamp' => now()
+        ]);
     }
 }

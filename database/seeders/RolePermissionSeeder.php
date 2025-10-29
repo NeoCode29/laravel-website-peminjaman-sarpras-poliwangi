@@ -46,9 +46,11 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'peminjaman.approve_specific', 'display_name' => 'Approve sarpras spesifik', 'description' => 'Dapat approve sarpras yang ditetapkan', 'category' => 'peminjaman'],
             ['name' => 'peminjaman.approve_workflow', 'display_name' => 'Mengelola workflow approval', 'description' => 'Dapat mengelola workflow approval', 'category' => 'peminjaman'],
             ['name' => 'peminjaman.reject', 'display_name' => 'Reject pengajuan', 'description' => 'Dapat reject pengajuan peminjaman', 'category' => 'peminjaman'],
+            ['name' => 'peminjaman.reject_specific', 'display_name' => 'Reject sarpras spesifik', 'description' => 'Dapat reject sarpras yang ditetapkan', 'category' => 'peminjaman'],
             ['name' => 'peminjaman.validate_pickup', 'display_name' => 'Validasi pengambilan', 'description' => 'Dapat validasi pengambilan sarpras', 'category' => 'peminjaman'],
             ['name' => 'peminjaman.validate_return', 'display_name' => 'Validasi pengembalian', 'description' => 'Dapat validasi pengembalian sarpras', 'category' => 'peminjaman'],
             ['name' => 'peminjaman.marking_override', 'display_name' => 'Override marking', 'description' => 'Dapat override marking user lain', 'category' => 'peminjaman'],
+            ['name' => 'peminjaman.adjust_sarpras', 'display_name' => 'Mengatur unit sarpras', 'description' => 'Dapat menentukan unit sarana setelah approval', 'category' => 'peminjaman'],
 
             // Report & Analytics
             ['name' => 'report.view', 'display_name' => 'Melihat laporan', 'description' => 'Dapat melihat laporan sistem', 'category' => 'report'],
@@ -124,6 +126,7 @@ class RolePermissionSeeder extends Seeder
             'peminjaman.approve_specific',
             'peminjaman.approve_workflow',
             'peminjaman.reject',
+            'peminjaman.reject_specific',
             'notification.view'
         ]);
 
@@ -133,6 +136,7 @@ class RolePermissionSeeder extends Seeder
             'peminjaman.view',
             'peminjaman.approve',
             'peminjaman.approve_workflow',
+            'peminjaman.reject_specific',
             'notification.view'
         ]);
 
@@ -142,6 +146,7 @@ class RolePermissionSeeder extends Seeder
             'peminjaman.view',
             'peminjaman.approve_specific',
             'peminjaman.approve_workflow',
+            'peminjaman.reject_specific',
             'notification.view'
         ]);
     }

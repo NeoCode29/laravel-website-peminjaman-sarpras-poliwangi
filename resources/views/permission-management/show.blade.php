@@ -3,197 +3,166 @@
 @section('title', 'Detail Permission')
 @section('subtitle', 'Informasi lengkap permission')
 
+@section('header-actions')
+<a href="{{ route('permission-management.edit', $permission->id) }}" class="btn btn-secondary btn-cancel">
+    <i class="fas fa-edit"></i>
+    Edit Permission
+</a>
+<a href="{{ route('permission-management.index') }}" class="btn btn-secondary btn-cancel">
+    <i class="fas fa-list"></i>
+    Daftar Permission
+</a>
+@endsection
+
 @section('content')
-<div class="permission-management-container">
-    <!-- Single Card -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-header-content">
-                <div class="card-header-title">
-                    <h1 class="title">
-                        <i class="fas fa-key title-icon"></i>
-                        Detail Permission
-                    </h1>
-                    <p class="subtitle">Informasi lengkap permission: {{ $permission->display_name }}</p>
+<section class="detail-page prasarana-detail-page">
+    <div class="card user-detail-card">
+        <div class="card-main">
+            <div class="summary-chips">
+                <div class="chip">
+                    <i class="fas fa-key"></i> {{ $permission->name }}
                 </div>
-                <div class="card-header-actions">
+                <div class="chip">
+                    <i class="fas fa-layer-group"></i> {{ ucfirst($permission->category) }}
+                </div>
+                <div class="chip">
+                    <i class="fas fa-calendar-plus"></i> {{ $permission->created_at->format('d/m/Y H:i') }}
+                </div>
+            </div>
+
+            <div class="detail-card-grid">
+                <div class="form-section">
+                    <h3 class="section-title">Informasi Permission</h3>
+                    <div class="detail-block">
+                        <div class="detail-row">
+                            <span class="detail-label">Nama Permission</span>
+                            <span class="detail-value">
+                                <code class="detail-code">{{ $permission->name }}</code>
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Nama Tampilan</span>
+                            <span class="detail-value">{{ $permission->display_name }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Kategori</span>
+                            <span class="detail-value">
+                                <span class="detail-chip">
+                                    <i class="fas fa-layer-group"></i>
+                                    {{ ucfirst($permission->category) }}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Guard</span>
+                            <span class="detail-value">{{ $permission->guard_name }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status</span>
+                            <span class="detail-value">
+                                @if($permission->is_active)
+                                    <span class="status-badge status-approved">
+                                        <i class="fas fa-check-circle"></i>
+                                        Aktif
+                                    </span>
+                                @else
+                                    <span class="status-badge status-pending">
+                                        <i class="fas fa-pause-circle"></i>
+                                        Tidak Aktif
+                                    </span>
+                                @endif
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Jumlah Role</span>
+                            <span class="detail-value">
+                                <span class="detail-chip">
+                                    <i class="fas fa-users"></i>
+                                    {{ $permission->roles->count() }}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Deskripsi & Riwayat</h3>
+                    <div class="detail-block">
+                        <div class="detail-row detail-row-start">
+                            <span class="detail-label">Deskripsi</span>
+                            <span class="detail-value detail-value-start">{{ $permission->description ?? 'Tidak ada deskripsi' }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Tanggal Dibuat</span>
+                            <span class="detail-value">{{ $permission->created_at->format('d/m/Y H:i') }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Terakhir Diperbarui</span>
+                            <span class="detail-value">{{ $permission->updated_at->format('d/m/Y H:i') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">Role yang Memiliki Permission</h3>
+                <div class="detail-block">
+                    @if($roles->count() > 0)
+                    <div class="simple-roles-list">
+                        @foreach($roles as $role)
+                        <div class="simple-role-item">
+                            <div class="simple-role-info">
+                                <span class="simple-role-name">{{ $role->display_name }}</span>
+                                <span class="simple-role-code">{{ $role->name }}</span>
+                            </div>
+                            <a href="{{ route('role-management.show', $role->id) }}" class="simple-role-link" title="Lihat Role">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    @if($roles->hasPages())
+                    <div class="detail-pagination">
+                        <div class="pagination-info">
+                            Menampilkan {{ $roles->firstItem() }} - {{ $roles->lastItem() }} dari {{ $roles->total() }} role
+                        </div>
+                        <div class="pagination-controls">
+                            {{ $roles->links() }}
+                        </div>
+                    </div>
+                    @endif
+                    @else
+                    <div class="detail-empty">
+                        <div class="empty-state">
+                            <i class="fas fa-users empty-state-icon"></i>
+                            <p class="empty-state-text">Permission ini belum digunakan oleh role manapun.</p>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">Tindakan</h3>
+                <div class="detail-actions">
                     <a href="{{ route('permission-management.edit', $permission->id) }}" class="btn btn-primary">
                         <i class="fas fa-edit"></i>
                         Edit Permission
                     </a>
-                    <a href="{{ route('permission-management.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i>
-                        Kembali
+                    <a href="{{ route('permission-management.index') }}" class="btn btn-secondary btn-cancel">
+                        <i class="fas fa-list"></i>
+                        Kembali ke Daftar
                     </a>
                 </div>
             </div>
         </div>
-        
-        <div class="card-main">
-            <!-- Permission Details -->
-            <div class="permission-details-section">
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <label class="detail-label">Nama Permission</label>
-                        <div class="detail-value">
-                            <code class="permission-code">{{ $permission->name }}</code>
-                        </div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <label class="detail-label">Nama Tampilan</label>
-                        <div class="detail-value">{{ $permission->display_name }}</div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <label class="detail-label">Kategori</label>
-                        <div class="detail-value">
-                            <span class="badge badge-category">{{ ucfirst($permission->category) }}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <label class="detail-label">Status</label>
-                        <div class="detail-value">
-                            @if($permission->is_active)
-                                <span class="badge badge-status-active">Aktif</span>
-                            @else
-                                <span class="badge badge-status-inactive">Tidak Aktif</span>
-                            @endif
-                        </div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <label class="detail-label">Guard Name</label>
-                        <div class="detail-value">{{ $permission->guard_name }}</div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <label class="detail-label">Jumlah Role</label>
-                        <div class="detail-value">
-                            <span class="role-count">{{ $permission->roles->count() }}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                @if($permission->description)
-                <div class="detail-item full-width">
-                    <label class="detail-label">Deskripsi</label>
-                    <div class="detail-value">
-                        <div class="permission-description">{{ $permission->description }}</div>
-                    </div>
-                </div>
-                @endif
-                
-                <div class="detail-item full-width">
-                    <label class="detail-label">Tanggal Dibuat</label>
-                    <div class="detail-value">{{ $permission->created_at->format('d M Y H:i') }}</div>
-                </div>
-                
-                <div class="detail-item full-width">
-                    <label class="detail-label">Terakhir Diupdate</label>
-                    <div class="detail-value">{{ $permission->updated_at->format('d M Y H:i') }}</div>
-                </div>
-            </div>
-            
-            <!-- Roles Section -->
-            @if($roles->count() > 0)
-            <div class="roles-section">
-                <h3 class="section-title">
-                    <i class="fas fa-users"></i>
-                    Role yang Memiliki Permission Ini ({{ $roles->total() }})
-                </h3>
-                
-                <div class="simple-roles-list">
-                    @foreach($roles as $role)
-                    <div class="simple-role-item">
-                        <div class="simple-role-info">
-                            <span class="simple-role-name">{{ $role->display_name }}</span>
-                            <span class="simple-role-code">{{ $role->name }}</span>
-                        </div>
-                        <a href="{{ route('role-management.show', $role->id) }}" 
-                           class="simple-role-link" title="Lihat Role">
-                            <i class="fas fa-external-link-alt"></i>
-                        </a>
-                    </div>
-                    @endforeach
-                </div>
-                
-                <!-- Roles Pagination -->
-                @if($roles->hasPages())
-                <div class="pagination-section">
-                    <div class="pagination-info">
-                        <p class="pagination-text">
-                            Menampilkan {{ $roles->firstItem() }} - {{ $roles->lastItem() }} dari {{ $roles->total() }} role
-                        </p>
-                    </div>
-                    <div class="pagination-controls">
-                        <div class="pagination-nav">
-                            <ul class="pagination-list">
-                                {{-- Previous Page Link --}}
-                                @if ($roles->onFirstPage())
-                                    <li class="pagination-item">
-                                        <span class="pagination-link pagination-link-disabled">
-                                            <i class="fas fa-chevron-left pagination-icon"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="pagination-item">
-                                        <a href="{{ $roles->previousPageUrl() }}" class="pagination-link">
-                                            <i class="fas fa-chevron-left pagination-icon"></i>
-                                        </a>
-                                    </li>
-                                @endif
-
-                                {{-- Pagination Elements --}}
-                                @foreach ($roles->getUrlRange(1, $roles->lastPage()) as $page => $url)
-                                    @if ($page == $roles->currentPage())
-                                        <li class="pagination-item">
-                                            <span class="pagination-link pagination-link-active">{{ $page }}</span>
-                                        </li>
-                                    @else
-                                        <li class="pagination-item">
-                                            <a href="{{ $url }}" class="pagination-link pagination-number">{{ $page }}</a>
-                                        </li>
-                                    @endif
-                                @endforeach
-
-                                {{-- Next Page Link --}}
-                                @if ($roles->hasMorePages())
-                                    <li class="pagination-item">
-                                        <a href="{{ $roles->nextPageUrl() }}" class="pagination-link">
-                                            <i class="fas fa-chevron-right pagination-icon"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="pagination-item">
-                                        <span class="pagination-link pagination-link-disabled">
-                                            <i class="fas fa-chevron-right pagination-icon"></i>
-                                        </span>
-                                    </li>
-                                @endif
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                @endif
-            </div>
-            @else
-            <div class="empty-roles">
-                <div class="empty-state-container">
-                    <i class="fas fa-users empty-state-icon"></i>
-                    <h4 class="empty-state-title">Belum Ada Role</h4>
-                    <p class="empty-state-description">
-                        Permission ini belum digunakan oleh role manapun.
-                    </p>
-                </div>
-            </div>
-            @endif
-        </div>
     </div>
-</div>
+</section>
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/components/user-management-create.css') }}?v={{ filemtime(public_path('css/components/user-management-create.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/prasarana.css') }}?v={{ filemtime(public_path('css/prasarana.css')) }}">
 <link rel="stylesheet" href="{{ asset('css/components/permission-management.css') }}">
 @endpush

@@ -20,6 +20,7 @@ class UpdateSaranaRequest extends FormRequest
             'jumlah_total' => 'required|integer|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'remove_current_image' => 'nullable|boolean',
             'lokasi' => 'nullable|string|max:150',
             'jumlah_tersedia' => 'nullable|integer|min:0',
             'jumlah_rusak' => 'nullable|integer|min:0',

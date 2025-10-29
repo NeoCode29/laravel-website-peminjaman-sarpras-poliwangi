@@ -7,6 +7,9 @@ use App\Models\Prasarana;
 use App\Policies\PrasaranaPolicy;
 use App\Models\Sarana;
 use App\Policies\SaranaPolicy;
+use App\Models\Marking;
+use App\Models\Peminjaman;
+use App\Policies\MarkingPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 
@@ -20,6 +23,8 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Prasarana::class => PrasaranaPolicy::class,
         Sarana::class => SaranaPolicy::class,
+        Marking::class => MarkingPolicy::class,
+        Peminjaman::class => \App\Policies\PeminjamanPolicy::class,
     ];
 
     /**

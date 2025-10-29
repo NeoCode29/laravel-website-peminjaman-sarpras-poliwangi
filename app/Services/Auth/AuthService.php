@@ -3,6 +3,7 @@
 namespace App\Services\Auth;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\RedirectResponse;
 use App\Models\User;
@@ -131,13 +132,35 @@ class AuthService
     public function logout($request): RedirectResponse
     {
         $user = Auth::user();
-        
+        $currentSessionId = $request->session()->getId();
+
         if ($user) {
+            if (method_exists($user, 'token') && $user->token) {
+                $user->token()->delete();
+            }
+
             $this->logAuthAction($user, 'logout', 'User berhasil logout');
+
+            DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->where('id', '!=', $currentSessionId)
+                ->delete();
         }
 
         Auth::logout();
-        
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        DB::table('sessions')->where('id', $currentSessionId)->delete();
+
+        $ssoEnabled = filter_var(config('services.oauth_server.sso_enable'), FILTER_VALIDATE_BOOLEAN);
+        $logoutUri = config('services.oauth_server.uriLogout');
+
+        if ($ssoEnabled && $logoutUri && $user && method_exists($user, 'isSsoUser') && $user->isSsoUser()) {
+            return redirect($logoutUri);
+        }
+
         return redirect()->route('login')->with('success', 'Anda telah berhasil logout.');
     }
 

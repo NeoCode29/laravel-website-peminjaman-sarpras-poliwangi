@@ -1,126 +1,254 @@
-@extends('user-management.layout')
+@extends('layouts.app')
 
-@section('title', 'Manajemen Kategori Sarana')
+@section('title', 'Daftar Kategori Sarana')
+@section('subtitle', 'Kelola kategori sarana dan status ketersediaannya')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/kategori-sarana.css') }}?v={{ filemtime(public_path('css/kategori-sarana.css')) }}">
+@endpush
+
+@section('header-actions')
+    @can('sarpras.create')
+    <a href="{{ route('kategori-sarana.create') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i>
+        Tambah Kategori
+    </a>
+    @endcan
+@endsection
 
 @section('content')
-<div class="row">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="card-title">Manajemen Kategori Sarana</h3>
-                @if(Auth::user()->hasPermission('sarpras.create'))
-                <a href="{{ route('kategori-sarana.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Tambah Kategori
-                </a>
-                @endif
-            </div>
-            <div class="card-body">
-                <!-- Filter Form -->
-                <form method="GET" action="{{ route('kategori-sarana.index') }}" class="mb-4">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="search">Cari:</label>
-                                <input type="text" class="form-control" id="search" name="search" 
-                                       value="{{ request('search') }}" placeholder="Nama atau deskripsi kategori...">
+<div class="page-content">
+    <div class="card card--headerless">
+        <div class="card-main">
+            <div class="filters-section">
+                <form method="GET" action="{{ route('kategori-sarana.index') }}" class="filters-form">
+                    <div class="filters-grid">
+                        <div class="filters-group">
+                            <label class="filters-label" for="search">Pencarian</label>
+                            <div class="search-input-wrapper">
+                                <input type="text"
+                                       id="search"
+                                       name="search"
+                                       value="{{ request('search') }}"
+                                       placeholder="Cari nama kategori..."
+                                       class="search-input">
+                                <i class="fas fa-search search-icon"></i>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary">Filter</button>
-                                    <a href="{{ route('kategori-sarana.index') }}" class="btn btn-secondary">Reset</a>
-                                </div>
-                            </div>
+
+                        <div class="filters-group">
+                            <label class="filters-label" for="status">Status</label>
+                            <select id="status" name="status" class="filters-select">
+                                <option value="">Semua Status</option>
+                                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Aktif</option>
+                                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Tidak Aktif</option>
+                            </select>
                         </div>
                     </div>
                 </form>
+            </div>
 
-                <!-- Kategori Table -->
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Nama</th>
-                                <th>Deskripsi</th>
-                                <th>Icon</th>
-                                <th>Jumlah Sarana</th>
-                                <th>Tanggal Dibuat</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($kategori as $item)
-                            <tr>
-                                <td>{{ $loop->iteration + ($kategori->currentPage() - 1) * $kategori->perPage() }}</td>
-                                <td>
-                                    <strong>{{ $item->name }}</strong>
-                                </td>
-                                <td>
-                                    @if($item->description)
-                                        {{ Str::limit($item->description, 50) }}
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($item->icon)
-                                        <i class="{{ $item->icon }} fa-lg"></i>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="badge badge-info">{{ $item->sarana_count }}</span>
-                                </td>
-                                <td>{{ $item->created_at->format('d/m/Y') }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        @if(Auth::user()->hasPermission('sarpras.view'))
-                                        <a href="{{ route('kategori-sarana.show', $item->id) }}" 
-                                           class="btn btn-sm btn-info" title="Lihat Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
+            <div class="table-section">
+                @if($kategoriSarana->count() > 0)
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th class="table-head" style="width: 60px;">No</th>
+                                    <th class="table-head" style="width: 220px;">Nama Kategori</th>
+                                    <th class="table-head" style="width: 320px;">Deskripsi</th>
+                                    <th class="table-head" style="width: 120px;">Jumlah Sarana</th>
+                                    <th class="table-head" style="width: 120px;">Status</th>
+                                    <th class="table-head" style="width: 150px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $startNumber = method_exists($kategoriSarana, 'firstItem') ? $kategoriSarana->firstItem() : 1;
+                                @endphp
+                                @foreach($kategoriSarana as $item)
+                                <tr>
+                                    <td class="table-body table-number">{{ $startNumber + $loop->index }}</td>
+                                    <td class="table-body">
+                                        <div class="user-info">
+                                            <div class="user-details">
+                                                <div class="user-name">{{ $item->name }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="table-body">
+                                        <div class="description-cell">
+                                            @if($item->description)
+                                                <div class="description-text" title="{{ $item->description }}">
+                                                    {{ Str::limit($item->description, 120) }}
+                                                </div>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="table-body">
+                                        <span class="badge badge-role">{{ $item->sarana_count ?? 0 }}</span>
+                                    </td>
+                                    <td class="table-body">
+                                        @if($item->is_active ?? true)
+                                            <span class="badge badge-status_active">Aktif</span>
+                                        @else
+                                            <span class="badge badge-status_blocked">Tidak Aktif</span>
                                         @endif
-                                        
-                                        @if(Auth::user()->hasPermission('sarpras.edit'))
-                                        <a href="{{ route('kategori-sarana.edit', $item->id) }}" 
-                                           class="btn btn-sm btn-warning" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        @endif
-                                        
-                                        @if(Auth::user()->hasPermission('sarpras.delete'))
-                                        <form action="{{ route('kategori-sarana.destroy', $item->id) }}" 
-                                              method="POST" class="d-inline"
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus kategori ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                    </td>
+                                    <td class="table-body">
+                                        <div class="action-buttons">
+                                            @can('sarpras.view')
+                                            <a href="{{ route('kategori-sarana.show', $item->id) }}" class="action-button action-button-view" title="Lihat Detail">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @endcan
+
+                                            @can('sarpras.edit')
+                                            <a href="{{ route('kategori-sarana.edit', $item->id) }}" class="action-button action-button-edit" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            @endcan
+
+                                            @can('sarpras.delete')
+                                            <button type="button" class="action-button action-button-delete" onclick="confirmDelete({{ $item->id }}, '{{ $item->name }}')" title="Hapus">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        </form>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="text-center">Tidak ada data kategori sarana.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                                            @endcan
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
 
-                <!-- Pagination -->
-                <div class="d-flex justify-content-center">
-                    {{ $kategori->appends(request()->query())->links() }}
-                </div>
+                    <div class="pagination-section">
+                        <div class="pagination-info">
+                            <span class="pagination-text">
+                                Menampilkan {{ $kategoriSarana->firstItem() }}-{{ $kategoriSarana->lastItem() }} dari {{ $kategoriSarana->total() }} kategori
+                            </span>
+                        </div>
+                        <div class="pagination-controls">
+                            <div class="pagination-wrapper">
+                                {{ $kategoriSarana->appends(request()->query())->links('pagination.custom') }}
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="empty-state">
+                        <div class="empty-state-container">
+                            <i class="fas fa-tags empty-state-icon"></i>
+                            <h3 class="empty-state-title">Tidak Ada Data Kategori</h3>
+                            <p class="empty-state-description">
+                                @if(request()->filled('search') || request()->filled('status'))
+                                    Tidak ada kategori yang sesuai dengan filter yang dipilih.
+                                @else
+                                    Belum ada kategori sarana yang tersedia.
+                                    @can('sarpras.create')
+                                        Klik tombol "Tambah Kategori" untuk membuat kategori pertama.
+                                    @endcan
+                                @endif
+                            </p>
+                            @if(request()->filled('search') || request()->filled('status'))
+                                <a href="{{ route('kategori-sarana.index') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i>
+                                    Hapus Filter
+                                </a>
+                            @else
+                                @can('sarpras.create')
+                                <a href="{{ route('kategori-sarana.create') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i>
+                                    Tambah Kategori Pertama
+                                </a>
+                                @endcan
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="dialog-backdrop" style="display: none;">
+    <div class="dialog">
+        <div class="dialog-header">
+            <h3>Konfirmasi Hapus</h3>
+        </div>
+        <div class="dialog-body">
+            <p>Apakah Anda yakin ingin menghapus kategori <strong id="deleteCategoryName"></strong>?</p>
+            <p class="text-danger">Tindakan ini tidak dapat dibatalkan dan akan mempengaruhi sarana yang menggunakan kategori ini.</p>
+        </div>
+        <div class="dialog-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Batal</button>
+            <form id="deleteForm" method="POST" style="display: inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">Hapus</button>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+function confirmDelete(id, name) {
+    const modal = document.getElementById('deleteModal');
+    const form = document.getElementById('deleteForm');
+    const nameElement = document.getElementById('deleteCategoryName');
+    
+    nameElement.textContent = name;
+    form.action = `/kategori-sarana/${id}`;
+    modal.style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.style.display = 'none';
+}
+
+// Close modal when clicking backdrop
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDeleteModal();
+    }
+});
+
+// Auto-submit form when filter changes
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.querySelector('.filters-form');
+    const filterSelects = document.querySelectorAll('.filters-select');
+    
+    // Auto-submit when select changes
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
+    
+    // Auto-submit when search input changes (with debounce)
+    const searchInput = document.querySelector('.search-input');
+    let searchTimeout;
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                filterForm.submit();
+            }, 500); // 500ms delay
+        });
+    }
+});
+</script>
+@endpush

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class PermissionManagementController extends Controller
 {
@@ -54,7 +55,9 @@ class PermissionManagementController extends Controller
      */
     public function create()
     {
-        return view('permission-management.create');
+        $categories = $this->getCategoryOptions();
+
+        return view('permission-management.create', compact('categories'));
     }
 
     /**
@@ -127,7 +130,9 @@ class PermissionManagementController extends Controller
     public function edit($id)
     {
         $permission = Permission::findOrFail($id);
-        return view('permission-management.edit', compact('permission'));
+        $categories = $this->getCategoryOptions();
+
+        return view('permission-management.edit', compact('permission', 'categories'));
     }
 
     /**
@@ -201,5 +206,40 @@ class PermissionManagementController extends Controller
         
         return redirect()->route('permission-management.index')
             ->with('success', "Permission berhasil {$status}.");
+    }
+
+    /**
+     * Get available permission categories with display labels.
+     */
+    private function getCategoryOptions(): array
+    {
+        $defaultLabels = [
+            'user' => 'User Management',
+            'sarpras' => 'Sarana & Prasarana',
+            'peminjaman' => 'Peminjaman',
+            'report' => 'Laporan',
+            'log' => 'Log Aktivitas',
+            'analytics' => 'Analytics',
+            'system' => 'Sistem',
+            'notification' => 'Notifikasi',
+        ];
+
+        $categories = Permission::select('category')
+            ->distinct()
+            ->pluck('category')
+            ->filter()
+            ->sort()
+            ->values();
+
+        if ($categories->isEmpty()) {
+            return $defaultLabels;
+        }
+
+        return $categories->mapWithKeys(function ($category) use ($defaultLabels) {
+            $key = (string) $category;
+            $label = $defaultLabels[$key] ?? Str::title(str_replace(['_', '-'], ' ', $key));
+
+            return [$key => $label];
+        })->toArray();
     }
 }

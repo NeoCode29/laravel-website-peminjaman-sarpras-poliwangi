@@ -17,19 +17,20 @@ class DashboardSeeder extends Seeder
     {
         // Seed kategori prasarana
         $kategoriPrasarana = [
-            ['name' => 'Aula', 'description' => 'Ruang aula untuk acara besar', 'icon' => 'fas fa-building'],
-            ['name' => 'Ruang Meeting', 'description' => 'Ruang rapat dan meeting', 'icon' => 'fas fa-users'],
-            ['name' => 'Laboratorium', 'description' => 'Ruang laboratorium', 'icon' => 'fas fa-flask'],
-            ['name' => 'Ruang Kelas', 'description' => 'Ruang kelas untuk pembelajaran', 'icon' => 'fas fa-chalkboard-teacher'],
+            ['name' => 'Aula', 'description' => 'Ruang aula untuk acara besar'],
+            ['name' => 'Ruang Meeting', 'description' => 'Ruang rapat dan meeting'],
+            ['name' => 'Laboratorium', 'description' => 'Ruang laboratorium'],
+            ['name' => 'Ruang Kelas', 'description' => 'Ruang kelas untuk pembelajaran'],
         ];
 
         foreach ($kategoriPrasarana as $kategori) {
             DB::table('kategori_prasarana')->updateOrInsert(
                 ['name' => $kategori['name']],
-                array_merge($kategori, [
+                [
+                    'description' => $kategori['description'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ])
+                ]
             );
         }
 

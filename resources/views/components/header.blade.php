@@ -12,10 +12,16 @@
     <div class="header-right">
         @auth
             <!-- Notifications -->
-            <div class="notification-btn" id="notificationBtn">
+            <a href="{{ route('notifications.index') }}" class="notification-btn" id="notificationBtn" title="Notifikasi">
                 <i class="fas fa-bell"></i>
-                <span class="notification-badge" id="notificationBadge">0</span>
-            </div>
+                @php
+                    $unreadCount = \App\Models\Notification::where('user_id', Auth::id())
+                        ->whereNull('read_at')
+                        ->where(function($q){ $q->whereNull('expires_at')->orWhere('expires_at','>', now()); })
+                        ->count();
+                @endphp
+                <span class="notification-badge" id="notificationBadge">{{ $unreadCount }}</span>
+            </a>
             
             <!-- User Menu -->
             <div class="user-menu">

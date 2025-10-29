@@ -31,5 +31,14 @@ class DatabaseSeeder extends Seeder
         
         // Create dashboard data
         $this->call(DashboardSeeder::class);
+        
+        // Create system settings
+        $this->call(SystemSettingSeeder::class);
+        
+        // Create UKM data
+        $this->call(UkmSeeder::class);
+        
+        // Create kategori prasarana data
+        $this->call(KategoriPrasaranaSeeder::class);
     }
 }

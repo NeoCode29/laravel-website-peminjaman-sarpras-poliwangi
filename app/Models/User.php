@@ -275,6 +275,54 @@ class User extends Authenticatable
     }
 
     /**
+     * Relasi ke Peminjaman (One-to-Many)
+     */
+    public function peminjaman()
+    {
+        return $this->hasMany(Peminjaman::class);
+    }
+
+    /**
+     * Relasi ke Marking (One-to-Many)
+     */
+    public function marking()
+    {
+        return $this->hasMany(Marking::class);
+    }
+
+    /**
+     * Relasi ke GlobalApprover (One-to-Many)
+     */
+    public function globalApprover()
+    {
+        return $this->hasMany(GlobalApprover::class, 'approver_id');
+    }
+
+    /**
+     * Relasi ke SaranaApprover (One-to-Many)
+     */
+    public function saranaApprover()
+    {
+        return $this->hasMany(SaranaApprover::class, 'approver_id');
+    }
+
+    /**
+     * Relasi ke PrasaranaApprover (One-to-Many)
+     */
+    public function prasaranaApprover()
+    {
+        return $this->hasMany(PrasaranaApprover::class, 'approver_id');
+    }
+
+    /**
+     * Relasi ke PeminjamanApprovalWorkflow (One-to-Many)
+     */
+    public function approvalWorkflow()
+    {
+        return $this->hasMany(PeminjamanApprovalWorkflow::class, 'approver_id');
+    }
+
+    /**
      * Get user's specific data based on user_type
      */
     public function getSpecificData()
