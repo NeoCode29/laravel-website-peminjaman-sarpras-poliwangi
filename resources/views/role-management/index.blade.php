@@ -94,7 +94,7 @@
                                         <span class="user-count">{{ $role->users_count ?? 0 }}</span>
                                     </td>
                                     <td>
-                                        <span class="permission-count">{{ $role->permissions->count() }}</span>
+                                        <span class="permission-count">{{ $role->permissions_count ?? 0 }}</span>
                                     </td>
                                     <td>
                                         <div class="action-buttons">

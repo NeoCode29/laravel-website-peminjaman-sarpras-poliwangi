@@ -93,7 +93,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="role-count">{{ $permission->roles->count() }}</span>
+                                        <span class="role-count">{{ $permission->roles_count ?? 0 }}</span>
                                     </td>
                                     <td>
                                         <div class="permission-description">

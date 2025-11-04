@@ -63,18 +63,18 @@ class Role extends SpatieRole
     }
 
     /**
-     * Get users count
+     * Get users total (fallback to eager-loaded count when available).
      */
-    public function getUsersCountAttribute()
+    public function getUsersTotalAttribute()
     {
-        return $this->users()->count();
+        return $this->attributes['users_count'] ?? $this->users()->count();
     }
 
     /**
-     * Get permissions count
+     * Get permissions total (fallback to eager-loaded count when available).
      */
-    public function getPermissionsCountAttribute()
+    public function getPermissionsTotalAttribute()
     {
-        return $this->permissions()->count();
+        return $this->attributes['permissions_count'] ?? $this->permissions()->count();
     }
 }

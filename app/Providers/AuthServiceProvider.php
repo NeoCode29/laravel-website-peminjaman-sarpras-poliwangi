@@ -10,6 +10,7 @@ use App\Policies\SaranaPolicy;
 use App\Models\Marking;
 use App\Models\Peminjaman;
 use App\Policies\MarkingPolicy;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 
@@ -36,14 +37,15 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 		
-		if (Schema::hasTable('roles')) {			
-			$roles = \Spatie\Permission\Models\Role::where('guard_name','web')->get();
-			foreach($roles as $r){
-				$nama=$r->name;				
+		if (Schema::hasTable('roles')) {
+			$roleNames = Cache::remember('auth.gates.roles', 300, function () {
+				return \Spatie\Permission\Models\Role::where('guard_name', 'web')->pluck('name')->all();
+			});
+
+			foreach ($roleNames as $nama) {
 				Gate::define($nama, function ($user) use ($nama) {
-					return $user->role_aktif==$nama;
+					return $user->role_aktif == $nama;
 				});
-				
 			}
 		}
 		

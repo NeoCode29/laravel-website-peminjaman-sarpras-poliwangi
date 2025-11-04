@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
@@ -149,5 +150,7 @@ class RolePermissionSeeder extends Seeder
             'peminjaman.reject_specific',
             'notification.view'
         ]);
+
+        Cache::forget('auth.gates.roles');
     }
 }

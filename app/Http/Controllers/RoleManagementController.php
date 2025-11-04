@@ -7,6 +7,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 
 class RoleManagementController extends Controller
@@ -21,7 +22,7 @@ class RoleManagementController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Role::with(['permissions', 'users']);
+        $query = Role::withCount(['permissions', 'users']);
 
         // Filter berdasarkan status
         if ($request->filled('is_active')) {
@@ -47,12 +48,6 @@ class RoleManagementController extends Controller
         $query->orderBy('created_at', 'desc');
 
         $roles = $query->paginate(15)->appends($request->query());
-        
-        // Add user count to each role
-        $roles->getCollection()->transform(function ($role) {
-            $role->users_count = $role->users()->count();
-            return $role;
-        });
 
         return view('role-management.index', compact('roles'));
     }
@@ -138,6 +133,8 @@ class RoleManagementController extends Controller
 
             DB::commit();
 
+            $this->forgetRoleGateCache();
+
             return redirect()->route('role-management.index')
                 ->with('success', 'Role berhasil dibuat.');
 
@@ -156,6 +153,7 @@ class RoleManagementController extends Controller
     public function show(Request $request, $id)
     {
         $role = Role::with('permissions')->findOrFail($id);
+        $role->loadCount('users');
         
         // Get paginated users for this role
         $usersQuery = $role->users();
@@ -269,6 +267,8 @@ class RoleManagementController extends Controller
 
             DB::commit();
 
+            $this->forgetRoleGateCache();
+
             return redirect()->route('role-management.index')
                 ->with('success', 'Role berhasil diperbarui.');
 
@@ -287,8 +287,7 @@ class RoleManagementController extends Controller
     public function destroy($id)
     {
         $role = Role::findOrFail($id);
-        
-        // Check if role is being used by users
+
         if ($role->users()->count() > 0) {
             if (request()->expectsJson()) {
                 return response()->json([
@@ -296,12 +295,11 @@ class RoleManagementController extends Controller
                     'message' => 'Role tidak dapat dihapus karena masih digunakan oleh ' . $role->users()->count() . ' user. Pindahkan user ke role lain terlebih dahulu.'
                 ], 400);
             }
-            
+
             return redirect()->route('role-management.index')
                 ->with('error', 'Role tidak dapat dihapus karena masih digunakan oleh ' . $role->users()->count() . ' user. Pindahkan user ke role lain terlebih dahulu.');
         }
 
-        // Check if role is admin role (cannot be deleted)
         if (in_array($role->name, ['admin', 'super_admin'])) {
             if (request()->expectsJson()) {
                 return response()->json([
@@ -309,7 +307,7 @@ class RoleManagementController extends Controller
                     'message' => 'Role admin tidak dapat dihapus karena merupakan role sistem.'
                 ], 400);
             }
-            
+
             return redirect()->route('role-management.index')
                 ->with('error', 'Role admin tidak dapat dihapus karena merupakan role sistem.');
         }
@@ -317,11 +315,9 @@ class RoleManagementController extends Controller
         try {
             DB::beginTransaction();
 
-            // Hard delete - hapus role dari database
             $roleName = $role->name;
             $role->delete();
-            
-            // Log the action
+
             \Log::info('Role deleted', [
                 'role_id' => $id,
                 'role_name' => $roleName,
@@ -330,27 +326,29 @@ class RoleManagementController extends Controller
             ]);
 
             DB::commit();
-            
+
+            $this->forgetRoleGateCache();
+
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Role berhasil dihapus secara permanen.'
                 ]);
             }
-            
+
             return redirect()->route('role-management.index')
                 ->with('success', 'Role berhasil dihapus secara permanen.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Terjadi kesalahan saat menghapus role. Silakan coba lagi.'
                 ], 500);
             }
-            
+
             return redirect()->route('role-management.index')
                 ->with('error', 'Terjadi kesalahan saat menghapus role. Silakan coba lagi.');
         }
@@ -362,25 +360,22 @@ class RoleManagementController extends Controller
     public function toggleStatus($id)
     {
         $role = Role::findOrFail($id);
-        
-        // Check if role is admin role (cannot be deactivated)
+
         if (!$role->is_active && in_array($role->name, ['admin', 'super_admin'])) {
             return redirect()->route('role-management.index')
                 ->with('error', 'Role admin tidak dapat dinonaktifkan karena merupakan role sistem.');
         }
 
-        // Check if role is being used by users when deactivating
         if ($role->is_active && $role->users()->count() > 0) {
             return redirect()->route('role-management.index')
                 ->with('error', 'Role tidak dapat dinonaktifkan karena masih digunakan oleh ' . $role->users()->count() . ' user. Pindahkan user ke role lain terlebih dahulu.');
         }
-        
+
         try {
             DB::beginTransaction();
 
             $role->update(['is_active' => !$role->is_active]);
-            
-            // Log the action
+
             \Log::info('Role status toggled', [
                 'role_id' => $role->id,
                 'role_name' => $role->name,
@@ -390,9 +385,11 @@ class RoleManagementController extends Controller
             ]);
 
             DB::commit();
-            
+
+            $this->forgetRoleGateCache();
+
             $status = $role->is_active ? 'diaktifkan' : 'dinonaktifkan';
-            
+
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => true,
@@ -400,20 +397,20 @@ class RoleManagementController extends Controller
                     'role' => $role
                 ]);
             }
-            
+
             return redirect()->route('role-management.index')
                 ->with('success', "Role berhasil {$status}.");
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Terjadi kesalahan saat mengubah status role. Silakan coba lagi.'
                 ], 500);
             }
-            
+
             return redirect()->route('role-management.index')
                 ->with('error', 'Terjadi kesalahan saat mengubah status role. Silakan coba lagi.');
         }
@@ -444,23 +441,20 @@ class RoleManagementController extends Controller
 
         $isActive = $request->action === 'activate';
         $roleIds = $request->role_ids;
-        
-        // Validate roles
+
         $roles = Role::whereIn('id', $roleIds)->get();
-        
-        // Check for admin roles when deactivating
+
         if (!$isActive) {
             $adminRoles = $roles->whereIn('name', ['admin', 'super_admin']);
             if ($adminRoles->count() > 0) {
                 return redirect()->route('role-management.index')
                     ->with('error', 'Role admin tidak dapat dinonaktifkan karena merupakan role sistem.');
             }
-            
-            // Check for roles with users
-            $rolesWithUsers = $roles->filter(function($role) {
+
+            $rolesWithUsers = $roles->filter(function ($role) {
                 return $role->users()->count() > 0;
             });
-            
+
             if ($rolesWithUsers->count() > 0) {
                 $roleNames = $rolesWithUsers->pluck('name')->implode(', ');
                 return redirect()->route('role-management.index')
@@ -473,8 +467,7 @@ class RoleManagementController extends Controller
 
             $count = Role::whereIn('id', $roleIds)
                 ->update(['is_active' => $isActive]);
-            
-            // Log the action
+
             \Log::info('Bulk role status change', [
                 'role_ids' => $roleIds,
                 'action' => $request->action,
@@ -484,6 +477,8 @@ class RoleManagementController extends Controller
             ]);
 
             DB::commit();
+
+            $this->forgetRoleGateCache();
 
             $action = $isActive ? 'diaktifkan' : 'dinonaktifkan';
             
@@ -512,5 +507,10 @@ class RoleManagementController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    private function forgetRoleGateCache(): void
+    {
+        Cache::forget('auth.gates.roles');
     }
 }

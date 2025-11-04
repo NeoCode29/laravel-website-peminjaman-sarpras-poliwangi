@@ -201,13 +201,16 @@
     border-radius: 8px;
     padding: 20px;
     border: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .filters-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 0;
 }
 
 .filters-group {
@@ -537,7 +540,10 @@
     background: #ffffff;
     border-radius: 8px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    width: min(520px, calc(100% - 32px));
+    width: min(500px, calc(100% - 32px));
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .dialog-header {
@@ -554,6 +560,7 @@
 
 .dialog-body {
     padding: 20px;
+    overflow-y: auto;
 }
 
 .dialog-body p {
@@ -571,6 +578,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 /* Button Styles */
@@ -694,6 +702,16 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+    .filters-form {
+        padding: 16px;
+    }
+
+    .filters-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
 @media (max-width: 768px) {
     .card-header-content {
         flex-direction: column;
@@ -718,14 +736,15 @@
     .pagination-section {
         flex-direction: column;
         gap: 12px;
-    }
-    
-    .pagination-info {
-        order: 2;
+        align-items: flex-start;
     }
     
     .pagination-controls {
-        order: 1;
+        width: 100%;
+    }
+    
+    .pagination-wrapper {
+        justify-content: flex-start;
     }
     
     .table-wrapper {
@@ -750,6 +769,19 @@
         width: 28px;
         height: 28px;
         font-size: 12px;
+    }
+    
+    .dialog {
+        width: calc(100% - 32px);
+        max-height: 92vh;
+    }
+    
+    .dialog-footer {
+        justify-content: stretch;
+    }
+    
+    .dialog-footer .btn {
+        flex: 1;
     }
 }
 
