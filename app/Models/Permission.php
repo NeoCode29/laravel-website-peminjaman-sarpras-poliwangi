@@ -72,11 +72,11 @@ class Permission extends SpatiePermission
     }
 
     /**
-     * Get roles count
+     * Get roles total (fallback to eager-loaded count when available).
      */
-    public function getRolesCountAttribute()
+    public function getRolesTotalAttribute()
     {
-        return $this->roles()->count();
+        return $this->attributes['roles_count'] ?? $this->roles()->count();
     }
 
     /**

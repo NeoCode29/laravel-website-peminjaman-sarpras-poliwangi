@@ -21,7 +21,7 @@
     <div class="card card--headerless prasarana-list-card">
         <div class="card-main">
             <div class="filters-section">
-                <form method="GET" action="{{ route('prasarana.index') }}" class="filters-form">
+                <form method="GET" action="{{ route('prasarana.index') }}" class="filters-form" novalidate>
                     <div class="filters-grid">
                         <div class="filter-group">
                             <label class="filter-label" for="search">Pencarian</label>
@@ -61,13 +61,14 @@
                         <div class="filter-group">
                             <label class="filter-label" for="lokasi">Lokasi</label>
                             <div class="search-input-wrapper">
+                                <i class="fas fa-map-marker-alt search-icon" aria-hidden="true"></i>
                                 <input type="text"
                                        id="lokasi"
                                        name="lokasi"
                                        value="{{ request('lokasi') }}"
                                        placeholder="Cari lokasi..."
-                                       class="search-input">
-                                <i class="fas fa-map-marker-alt search-icon"></i>
+                                       class="search-input"
+                                       autocomplete="off">
                             </div>
                         </div>
                     </div>
@@ -76,7 +77,7 @@
 
             <div class="table-section">
                 @if($prasarana->count() > 0)
-                    <div class="table-wrapper">
+                    <div class="table-wrapper" role="region" aria-live="polite">
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -112,7 +113,7 @@
                                     </td>
                                     <td>
                                         <div class="prasarana-meta">
-                                            <i class="fas fa-map-marker-alt"></i>
+                                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
                                             <span title="{{ $item->lokasi }}">{{ $item->lokasi ? Str::limit($item->lokasi, 40) : '-' }}</span>
                                         </div>
                                     </td>
@@ -173,7 +174,7 @@
                         </table>
                     </div>
 
-                    <div class="pagination-section">
+                    <div class="pagination-section" aria-label="Navigasi halaman prasarana">
                         <div class="pagination-info">
                             <span class="pagination-text">Menampilkan {{ $prasarana->firstItem() }}-{{ $prasarana->lastItem() }} dari {{ $prasarana->total() }} prasarana</span>
                         </div>
@@ -216,49 +217,62 @@
             </div>
         </div>
     </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="dialog-backdrop" style="display: none;">
-    <div class="dialog">
-        <div class="dialog-header">
-            <h3>Konfirmasi Hapus</h3>
-        </div>
-        <div class="dialog-body">
-            <p>Apakah Anda yakin ingin menghapus prasarana <strong id="deletePrasaranaName"></strong>?</p>
-            <p class="text-danger">Tindakan ini tidak dapat dibatalkan dan akan mempengaruhi peminjaman yang menggunakan prasarana ini.</p>
-        </div>
-        <div class="dialog-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Batal</button>
-            <form id="deleteForm" method="POST" style="display: inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger">Hapus</button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Status Toggle Modal -->
-<div id="statusModal" class="dialog-backdrop" style="display: none;">
-    <div class="dialog">
-        <div class="dialog-header">
-            <h3>Ubah Status Prasarana</h3>
-        </div>
-        <div class="dialog-body">
-            <p>Apakah Anda yakin ingin mengubah status prasarana <strong id="statusPrasaranaName"></strong>?</p>
-            <div class="form-group">
-                <label class="form-label">Status Baru</label>
-                <select id="newStatus" class="form-input">
-                    <option value="tersedia">Tersedia</option>
-                    <option value="rusak">Rusak</option>
-                    <option value="maintenance">Maintenance</option>
-                </select>
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle" aria-hidden="true" style="display: none;">
+        <div class="dialog" tabindex="-1">
+            <button type="button" class="dialog-close" aria-label="Tutup" onclick="closeDeleteModal()">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <div class="dialog-header">
+                <i class="fas fa-exclamation-circle dialog-header__icon" aria-hidden="true"></i>
+                <div class="dialog-header__content">
+                    <h3 id="deleteModalTitle">Konfirmasi Hapus</h3>
+                    <p class="dialog-header__subtitle">Tindakan ini tidak dapat dibatalkan.</p>
+                </div>
+            </div>
+            <div class="dialog-body">
+                <p>Apakah Anda yakin ingin menghapus prasarana <strong id="deletePrasaranaName"></strong>?</p>
+                <p class="text-danger">Tindakan ini tidak dapat dibatalkan dan akan mempengaruhi peminjaman yang menggunakan prasarana ini.</p>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Batal</button>
+                <form id="deleteForm" method="POST" aria-label="Form hapus prasarana" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Hapus</button>
+                </form>
             </div>
         </div>
-        <div class="dialog-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">Batal</button>
-            <button type="button" class="btn btn-primary" onclick="updateStatus()">Update Status</button>
+    </div>
+
+    <!-- Status Toggle Modal -->
+    <div id="statusModal" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle" aria-hidden="true" style="display: none;">
+        <div class="dialog" tabindex="-1">
+            <button type="button" class="dialog-close" aria-label="Tutup" onclick="closeStatusModal()">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <div class="dialog-header">
+                <i class="fas fa-sync-alt dialog-header__icon" aria-hidden="true"></i>
+                <div class="dialog-header__content">
+                    <h3 id="statusModalTitle">Ubah Status Prasarana</h3>
+                    <p class="dialog-header__subtitle">Pilih status terbaru untuk prasarana.</p>
+                </div>
+            </div>
+            <div class="dialog-body">
+                <p>Apakah Anda yakin ingin mengubah status prasarana <strong id="statusPrasaranaName"></strong>?</p>
+                <div class="form-group">
+                    <label class="form-label" for="newStatus">Status Baru</label>
+                    <select id="newStatus" class="form-input">
+                        <option value="tersedia">Tersedia</option>
+                        <option value="rusak">Rusak</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="updateStatus()">Update Status</button>
+            </div>
         </div>
     </div>
 </div>
@@ -266,56 +280,89 @@
 
 @push('scripts')
 <script>
+const modalFocusReturn = new Map();
+
+function getOpenModals() {
+    return document.querySelectorAll('.dialog-backdrop[aria-hidden="false"]');
+}
+
+function showModal(modal) {
+    if (!modal) return;
+
+    modalFocusReturn.set(modal.id, document.activeElement);
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+
+    const dialog = modal.querySelector('.dialog');
+    if (dialog) {
+        dialog.focus();
+    }
+
+    document.body.classList.add('modal-open');
+}
+
+function hideModal(modal) {
+    if (!modal) return;
+
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+
+    const previousFocus = modalFocusReturn.get(modal.id);
+    if (previousFocus && typeof previousFocus.focus === 'function') {
+        previousFocus.focus();
+    }
+    modalFocusReturn.delete(modal.id);
+
+    if (getOpenModals().length === 0) {
+        document.body.classList.remove('modal-open');
+    }
+}
+
 function confirmDelete(id, name) {
     const modal = document.getElementById('deleteModal');
     const form = document.getElementById('deleteForm');
     const nameElement = document.getElementById('deletePrasaranaName');
-    
+
     nameElement.textContent = name;
     form.action = `/prasarana/${id}`;
-    modal.style.display = 'flex';
+
+    showModal(modal);
 }
 
 function closeDeleteModal() {
-    const modal = document.getElementById('deleteModal');
-    modal.style.display = 'none';
+    hideModal(document.getElementById('deleteModal'));
 }
 
 function toggleStatus(id, name, currentStatus) {
     const modal = document.getElementById('statusModal');
     const nameElement = document.getElementById('statusPrasaranaName');
     const statusSelect = document.getElementById('newStatus');
-    
+
     nameElement.textContent = name;
-    
-    // Set default status based on current status
+
     let newStatus = 'tersedia';
     if (currentStatus === 'tersedia') {
         newStatus = 'rusak';
     }
     statusSelect.value = newStatus;
-    
-    // Store prasarana ID in modal dataset
+
     modal.dataset.prasaranaId = id;
-    
-    modal.style.display = 'flex';
+
+    showModal(modal);
 }
 
 function closeStatusModal() {
-    const modal = document.getElementById('statusModal');
-    modal.style.display = 'none';
+    hideModal(document.getElementById('statusModal'));
 }
 
 function updateStatus() {
     const statusSelect = document.getElementById('newStatus');
     const newStatus = statusSelect.value;
-    
-    // Get prasarana ID from the modal context
+
     const modal = document.getElementById('statusModal');
     const prasaranaId = modal.dataset.prasaranaId;
-    
+
     if (prasaranaId && newStatus) {
-        // Create form and submit
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `/prasarana/${prasaranaId}/status`;
@@ -338,7 +385,7 @@ function updateStatus() {
         form.appendChild(csrfToken);
         form.appendChild(methodField);
         form.appendChild(statusField);
-        
+
         document.body.appendChild(form);
         form.submit();
     }
@@ -360,8 +407,10 @@ document.getElementById('statusModal').addEventListener('click', function(e) {
 // Close modal with Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        closeDeleteModal();
-        closeStatusModal();
+        const openModal = document.querySelector('.dialog-backdrop[aria-hidden="false"]');
+        if (openModal) {
+            hideModal(openModal.id === 'deleteModal' ? document.getElementById('deleteModal') : document.getElementById('statusModal'));
+        }
     }
 });
 

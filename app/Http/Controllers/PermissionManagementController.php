@@ -21,7 +21,7 @@ class PermissionManagementController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Permission::with('roles');
+        $query = Permission::withCount('roles');
 
         // Filter berdasarkan kategori
         if ($request->has('category') && $request->category !== '') {
@@ -97,6 +97,7 @@ class PermissionManagementController extends Controller
     public function show(Request $request, $id)
     {
         $permission = Permission::findOrFail($id);
+        $permission->loadCount('roles');
         
         // Get paginated roles for this permission
         $rolesQuery = $permission->roles();

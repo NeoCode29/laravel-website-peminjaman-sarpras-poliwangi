@@ -22,7 +22,7 @@
     <div class="card card--headerless">
         <div class="card-main">
             <div class="filters-section">
-                <form method="GET" action="{{ route('kategori-prasarana.index') }}" class="filters-form">
+                <form method="GET" action="{{ route('kategori-prasarana.index') }}" class="filters-form" novalidate>
                     <div class="filters-grid">
                         <div class="filters-group">
                             <label class="filters-label">Pencarian</label>
@@ -181,10 +181,10 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="dialog-backdrop" style="display: none;">
+<div id="deleteModal" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle" style="display: none;">
     <div class="dialog">
         <div class="dialog-header">
-            <h3>Konfirmasi Hapus</h3>
+            <h3 id="deleteModalTitle">Konfirmasi Hapus</h3>
         </div>
         <div class="dialog-body">
             <p>Apakah Anda yakin ingin menghapus kategori <strong id="deleteCategoryName"></strong>?</p>
@@ -192,7 +192,7 @@
         </div>
         <div class="dialog-footer">
             <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Batal</button>
-            <form id="deleteForm" method="POST" style="display: inline;">
+            <form id="deleteForm" method="POST" aria-label="Form hapus kategori" style="display: inline;">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger">Hapus</button>
