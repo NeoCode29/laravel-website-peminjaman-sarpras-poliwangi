@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UserManagementController extends Controller
 {
@@ -16,10 +18,59 @@ class UserManagementController extends Controller
     {
         $this->middleware('permission:user.view')->only(['index', 'show']);
         $this->middleware('permission:user.create')->only(['create', 'store']);
-        $this->middleware('permission:user.edit')->only(['edit', 'update']);
+        $this->middleware('permission:user.edit')->only(['edit', 'update', 'updatePassword']);
         $this->middleware('permission:user.delete')->only(['destroy']);
         $this->middleware('permission:user.block')->only(['block', 'unblock']);
         $this->middleware('permission:user.role_edit')->only(['updateRole']);
+    }
+
+    /**
+     * Update user's password by admin.
+     */
+    public function updatePassword(Request $request, $id)
+    {
+        $targetUser = User::findOrFail($id);
+
+        if ($targetUser->isSsoUser()) {
+            return redirect()->back()
+                ->with('info', 'Password akun SSO diatur oleh penyedia SSO sehingga tidak dapat diubah dari aplikasi.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'password' => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+        ], [
+            'password.required' => 'Password baru harus diisi.',
+            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+            'password.min' => 'Password baru minimal 8 karakter.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput($request->except(['password', 'password_confirmation']));
+        }
+
+        try {
+            $targetUser->updatePassword($request->password);
+
+            Log::info('Admin updated user password', [
+                'acted_by' => $request->user()->id,
+                'target_user' => $targetUser->id,
+            ]);
+
+            return redirect()->route('user-management.show', $targetUser->id)
+                ->with('success', 'Password user berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            Log::error('Failed updating user password', [
+                'acted_by' => optional($request->user())->id,
+                'target_user' => $targetUser->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui password user. Silakan coba lagi.']);
+        }
     }
     /**
      * Display a listing of the resource.

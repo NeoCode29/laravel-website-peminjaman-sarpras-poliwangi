@@ -12,17 +12,10 @@
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
     <!-- Style Guide CSS -->
     <link href="{{ asset('css/style-guide.css') }}" rel="stylesheet">
+
+    @stack('styles')
 </head>
 <body>
     <div class="layout">
@@ -43,6 +36,12 @@
                    href="{{ route('profile.edit') }}">
                     ✏️ Edit Profil
                 </a>
+                @if(Auth::user() && !Auth::user()->isSsoUser())
+                <a class="nav-link {{ request()->is('profile/change-password') ? 'active' : '' }}" 
+                   href="{{ route('profile.password.edit') }}">
+                    🔑 Ubah Password
+                </a>
+                @endif
                 <hr style="border: none; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;">
                 <a class="nav-link" href="/">
                     🏠 Dashboard

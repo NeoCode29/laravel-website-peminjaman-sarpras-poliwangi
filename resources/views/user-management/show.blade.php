@@ -33,6 +33,22 @@
             </div>
         </div>
         <div class="card-main">
+            @if(session('success'))
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    {{ session('success') }}
+                    <button type="button" class="close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ $errors->first() }}
+                    <button type="button" class="close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            @endif
+
             <div class="summary-chips">
                 <div class="chip">
                     <i class="fas fa-user"></i> {{ $user->username }}
@@ -309,6 +325,67 @@
                     @endcan
                 </div>
             </div>
+
+            @can('user.edit')
+                @if(!$user->isSsoUser())
+                <div class="form-section">
+                    <h3 class="section-title">Atur Ulang Password</h3>
+                    <div class="detail-block">
+                        <form method="POST" action="{{ route('user-management.update-password', $user->id) }}" class="password-reset-form">
+                            @csrf
+                            @method('PUT')
+                            <div class="form-group">
+                                <label for="new_password" class="form-label required">Password Baru</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password"
+                                           id="new_password"
+                                           name="password"
+                                           class="form-input"
+                                           placeholder="Masukkan password minimal 8 karakter"
+                                           minlength="8"
+                                           required>
+                                    <button type="button" class="password-toggle" data-target="new_password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new_password_confirmation" class="form-label required">Konfirmasi Password Baru</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password"
+                                           id="new_password_confirmation"
+                                           name="password_confirmation"
+                                           class="form-input"
+                                           placeholder="Ulangi password baru"
+                                           minlength="8"
+                                           required>
+                                    <button type="button" class="password-toggle" data-target="new_password_confirmation">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="form-hint">Password harus mengandung huruf besar, huruf kecil, dan angka.</p>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-key"></i>
+                                    Simpan Password Baru
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @else
+                <div class="form-section">
+                    <h3 class="section-title">Atur Ulang Password</h3>
+                    <div class="detail-block">
+                        <div class="alert alert-info" style="margin: 0;">
+                            <i class="fas fa-info-circle"></i>
+                            Password untuk akun SSO dikelola oleh penyedia SSO.
+                        </div>
+                    </div>
+                </div>
+                @endif
+            @endcan
         </div>
     </div>
 </section>
@@ -375,6 +452,27 @@ window.onclick = function(event) {
         closeBlockModal();
     }
 }
+
+// Toggle password visibility for admin reset form
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.password-toggle').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const targetId = button.getAttribute('data-target');
+            const field = document.getElementById(targetId);
+            const icon = button.querySelector('i');
+
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                field.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+});
 </script>
 @endpush
 

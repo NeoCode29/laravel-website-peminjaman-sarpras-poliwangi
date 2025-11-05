@@ -1,93 +1,144 @@
-@extends('profile.layout')
+@extends('layouts.app')
 
 @section('title', 'Ubah Password')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/profile-change-password.css') }}?v={{ filemtime(public_path('css/profile-change-password.css')) }}">
+@endpush
+
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-key mr-2"></i>
+<section class="detail-page change-password-page">
+    <div class="card user-detail-card">
+        <div class="card-main">
+            <form action="{{ route('profile.password.update') }}" method="POST" class="change-password-form">
+                @csrf
+                @method('PUT')
+
+                @if(session('success'))
+                    <div class="feedback-message feedback-success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ session('success') }}</span>
+                        <button type="button" class="feedback-close" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="feedback-message feedback-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>{{ $errors->first() }}</span>
+                        <button type="button" class="feedback-close" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                @endif
+
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-key"></i>
                         Ubah Password
                     </h3>
-                    <div class="card-tools">
-                        <a href="{{ route('profile.show') }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-left mr-1"></i>
-                            Kembali
-                        </a>
-                    </div>
-                </div>
-                <form action="{{ route('profile.update-password') }}" method="POST">
-                    @csrf
-                    <div class="card-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            <strong>Tips:</strong> Gunakan password yang kuat dengan kombinasi huruf, angka, dan simbol.
+                    <div class="detail-block">
+                        <div class="info-alert">
+                            <i class="fas fa-info-circle"></i>
+                            Gunakan password yang kuat dengan kombinasi huruf besar, huruf kecil, dan angka.
                         </div>
+                        <div class="form-grid single-column">
+                            <div class="form-group">
+                                <label for="current_password" class="form-label required">Password Lama</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password"
+                                           id="current_password"
+                                           name="current_password"
+                                           class="form-input @error('current_password') is-invalid @enderror"
+                                           placeholder="Masukkan password lama"
+                                           required>
+                                    <button type="button" class="password-toggle" data-target="current_password" aria-label="Tampilkan password lama">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                @error('current_password')
+                                    <div class="form-error">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                        <div class="form-group">
-                            <label for="current_password">Password Lama <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control @error('current_password') is-invalid @enderror" 
-                                   id="current_password" name="current_password" required>
-                            @error('current_password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                            <div class="form-group">
+                                <label for="password" class="form-label required">Password Baru</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password"
+                                           id="password"
+                                           name="password"
+                                           class="form-input @error('password') is-invalid @enderror"
+                                           placeholder="Masukkan password baru"
+                                           minlength="8"
+                                           required>
+                                    <button type="button" class="password-toggle" data-target="password" aria-label="Tampilkan password baru">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                @error('password')
+                                    <div class="form-error">{{ $message }}</div>
+                                @enderror
+                                <p class="form-hint">Minimal 8 karakter dan mengandung huruf besar, huruf kecil, serta angka.</p>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="password">Password Baru <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control @error('password') is-invalid @enderror" 
-                                   id="password" name="password" required>
-                            @error('password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="form-text text-muted">Minimal 8 karakter</small>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="password_confirmation">Konfirmasi Password Baru <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" 
-                                   id="password_confirmation" name="password_confirmation" required>
-                        </div>
-
-                        <div class="form-group">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="show_password">
-                                <label class="form-check-label" for="show_password">
-                                    Tampilkan Password
-                                </label>
+                            <div class="form-group">
+                                <label for="password_confirmation" class="form-label required">Konfirmasi Password Baru</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password"
+                                           id="password_confirmation"
+                                           name="password_confirmation"
+                                           class="form-input"
+                                           placeholder="Ulangi password baru"
+                                           minlength="8"
+                                           required>
+                                    <button type="button" class="password-toggle" data-target="password_confirmation" aria-label="Tampilkan konfirmasi password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save mr-1"></i>
-                            Ubah Password
-                        </button>
-                        <a href="{{ route('profile.show') }}" class="btn btn-secondary">
-                            <i class="fas fa-times mr-1"></i>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Tindakan</h3>
+                    <div class="detail-actions">
+                        <a href="{{ route('profile.show') }}" class="btn btn-secondary btn-cancel">
+                            <i class="fas fa-arrow-left"></i>
                             Batal
                         </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Simpan Password
+                        </button>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
-</div>
+</section>
 @endsection
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // Toggle password visibility
-    $('#show_password').change(function() {
-        var passwordFields = ['#current_password', '#password', '#password_confirmation'];
-        var type = $(this).is(':checked') ? 'text' : 'password';
-        
-        passwordFields.forEach(function(field) {
-            $(field).attr('type', type);
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.password-toggle').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const targetId = button.getAttribute('data-target');
+            const field = document.getElementById(targetId);
+            const icon = button.querySelector('i');
+
+            if (!field) {
+                return;
+            }
+
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                field.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
         });
     });
 });
