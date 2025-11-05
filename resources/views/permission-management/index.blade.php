@@ -127,7 +127,7 @@
                                                     <i class="fas fa-toggle-off"></i>
                                                 </button>
                                             @endif
-                                            @if($permission->roles->count() == 0)
+                                            @if(($permission->roles_count ?? 0) == 0)
                                                 <button type="button" 
                                                         class="action-btn action-btn-delete" 
                                                         onclick="deletePermission({{ $permission->id }})"

@@ -108,6 +108,8 @@ Route::prefix('user-management')->name('user-management.')->middleware(['auth', 
     Route::post('/{id}/block', [App\Http\Controllers\UserManagementController::class, 'block'])->name('block');
     Route::post('/{id}/unblock', [App\Http\Controllers\UserManagementController::class, 'unblock'])->name('unblock');
     Route::put('/{id}/role', [App\Http\Controllers\UserManagementController::class, 'updateRole'])->name('update-role');
+    Route::put('/{id}/password', [App\Http\Controllers\UserManagementController::class, 'updatePassword'])
+        ->name('update-password');
 });
 
 // Role Management Routes
@@ -279,6 +281,10 @@ Route::prefix('profile')->name('profile.')->middleware(['auth', 'user.not.blocke
     Route::get('/', [App\Http\Controllers\ProfileController::class, 'show'])->name('show');
     Route::get('/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('edit');
     Route::put('/', [App\Http\Controllers\ProfileController::class, 'update'])->name('update');
+    Route::get('/change-password', [App\Http\Controllers\ProfileController::class, 'changePassword'])
+        ->name('password.edit');
+    Route::put('/change-password', [App\Http\Controllers\ProfileController::class, 'updatePassword'])
+        ->name('password.update');
 });
 
 // Approval Assignment Routes

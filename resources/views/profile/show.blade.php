@@ -8,6 +8,12 @@
         <i class="fas fa-edit"></i>
         Edit Profil
     </a>
+    @if(!$user->isSsoUser())
+    <a href="{{ route('profile.password.edit') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-key"></i>
+        Ubah Password
+    </a>
+    @endif
 @endsection
 
 @section('content')

@@ -11,9 +11,11 @@ use App\Models\Unit;
 use App\Models\Position;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
@@ -43,6 +45,78 @@ class ProfileController extends Controller
         $positions = Position::orderBy('nama')->get();
         
         return view('profile.edit', compact('user', 'jurusans', 'prodis', 'units', 'positions'));
+    }
+
+    /**
+     * Show change password form for local users
+     */
+    public function changePassword()
+    {
+        $user = Auth::user();
+
+        if ($user->isSsoUser()) {
+            return redirect()->route('profile.show')
+                ->with('info', 'Akun SSO dikelola oleh penyedia SSO. Ubah password melalui portal SSO.');
+        }
+
+        return view('profile.change-password');
+    }
+
+    /**
+     * Update authenticated user's password
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user->isSsoUser()) {
+            return redirect()->route('profile.show')
+                ->with('info', 'Password akun SSO tidak dapat diubah dari aplikasi ini.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'password' => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+        ], [
+            'current_password.required' => 'Password lama harus diisi.',
+            'password.required' => 'Password baru harus diisi.',
+            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+            'password.min' => 'Password baru minimal 8 karakter.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput($request->except(['current_password', 'password', 'password_confirmation']));
+        }
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return redirect()->back()
+                ->withErrors(['current_password' => 'Password lama tidak sesuai.'])
+                ->withInput($request->except(['current_password', 'password', 'password_confirmation']));
+        }
+
+        try {
+            $user->updatePassword($request->password);
+
+            Log::info('User password updated', [
+                'user_id' => $user->id,
+                'updated_by' => $user->id,
+                'via' => 'profile',
+            ]);
+
+            return redirect()->route('profile.password.edit')
+                ->with('success', 'Password berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            Log::error('Failed updating password', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui password. Silakan coba lagi.']);
+        }
     }
 
     /**
